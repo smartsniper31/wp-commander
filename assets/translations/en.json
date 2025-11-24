@@ -1,0 +1,44 @@
+{
+  "app": {
+    "title": "WP Commander",
+    "description": "Manage your WordPress sites from mobile",
+    "version": "Version"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "search": "Search"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "sites": "Sites",
+    "comments": "Comments",
+    "health": "Health",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "errors": {
+    "network": "Network connection error",
+    "timeout": "Request timeout",
+    "unauthorized": "Unauthorized access",
+    "notFound": "Resource not found",
+    "serverError": "Server error",
+    "unknown": "Unknown error occurred"
+  },
+  "sites": {
+    "addSite": "Add Site",
+    "siteName": "Site Name",
+    "siteUrl": "Site URL",
+    "apiKey": "API Key",
+    "testConnection": "Test Connection",
+    "connectionSuccess": "Connection successful",
+    "connectionFailed": "Connection failed"
+  }
+}
