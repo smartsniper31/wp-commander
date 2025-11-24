@@ -9,6 +9,7 @@ class SiteModel extends SiteEntity {
     required super.name,
     required super.url,
     required super.apiKey,
+    required super.createdAt,
   });
 
   factory SiteModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +18,7 @@ class SiteModel extends SiteEntity {
       name: json['name'] ?? '',
       url: json['url'] ?? '',
       apiKey: json['api_key'] ?? '',
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
@@ -26,6 +28,7 @@ class SiteModel extends SiteEntity {
       'name': name,
       'url': url,
       'api_key': apiKey,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 }

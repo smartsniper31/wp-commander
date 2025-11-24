@@ -9,11 +9,11 @@ import 'core/providers/locale_provider.dart';
 import 'core/routers/app_router.dart';
 import 'core/themes/app_theme.dart';
 import 'core/localization/app_localizations.dart';
-import 'data/datasources/local/shared_prefs.dart';
 import 'data/datasources/local/app_preferences.dart';
 import 'data/datasources/local/cache_manager.dart';
 import 'data/models/local/cached_data_model.dart';
 import 'presentation/pages/error/initialization_error_page.dart';
+import 'domain/services/security_service.dart';
 
 void main() async {
   try {
@@ -29,23 +29,21 @@ void main() async {
     // Enregistrer les adapters Hive
     Hive.registerAdapter(CachedDataModelAdapter());
     
-    // Initialiser les préférences partagées
-    await SharedPrefsDataSource.init();
-    await AppPreferences.init();
-    
     // Initialiser le cache
     await CacheManager.init();
     
     // Nettoyer le cache expiré au démarrage
     await CacheManager.cleanExpiredCache();
     
-    // Compter le lancement
+    await AppPreferences.init();
     await AppPreferences.incrementLaunchCount();
-    
-    // Date du premier lancement
     if (AppPreferences.firstLaunchDate == null) {
       await AppPreferences.setFirstLaunchDate(DateTime.now());
     }
+
+    // Initialiser la sécurité
+    const encryptionKey = 'wp_commander_secure_key_2024'; // À externaliser
+    SecurityService.initialize(encryptionKey);
     
     runApp(
       const ProviderScope(
@@ -64,13 +62,13 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
     final locale = ref.watch(localeNotifierProvider);
-    final isDarkMode = ref.watch(themeNotifierProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
     
     return MaterialApp.router(
       title: 'WP Commander',
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: themeMode,
       locale: locale,
       supportedLocales: const [
         Locale('en', 'US'),

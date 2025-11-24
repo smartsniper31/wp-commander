@@ -1,4 +1,5 @@
 import '../entities/health_entity.dart';
+import '../entities/health_issue_entity.dart';
 
 abstract class HealthRepository {
   Future<HealthEntity> getSiteHealth(String siteId);

@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/comments_repository.dart';
 import '../../entities/comment_entity.dart';

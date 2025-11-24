@@ -19,12 +19,12 @@ class StatsRepositoryImpl implements StatsRepository {
     );
     final statsModel = await dataSource.getDashboardStats();
     return StatsEntity(
-      totalPosts: statsModel.totalPosts,
-      totalPages: statsModel.totalPages,
-      totalComments: statsModel.totalComments,
-      pendingComments: statsModel.pendingComments,
-      totalUsers: statsModel.totalUsers,
-      lastUpdated: DateTime.parse(statsModel.lastUpdated),
+      posts: statsModel.totalPosts,
+      pages: statsModel.totalPages,
+      comments: statsModel.totalComments,
+      pending: statsModel.pendingComments,
+      users: statsModel.totalUsers,
+      lastUpdated: DateTime.now(),
     );
   }
 }

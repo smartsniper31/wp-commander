@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 
 import '../../core/errors/exceptions.dart';
 import '../../core/errors/failures.dart';
@@ -23,7 +22,7 @@ class SiteRepositoryImpl implements SiteRepository {
       final remoteSite = await remoteDataSource.getSite(site.url);
       
       // 2. Si valide, l'ajouter à la source de données locale
-      final newSite = await localDataSource.addSite(remoteSite);
+      final newSite = await localDataSource.cacheSite(remoteSite);
       return newSite;
     } on ServerException {
       throw Failure.server();

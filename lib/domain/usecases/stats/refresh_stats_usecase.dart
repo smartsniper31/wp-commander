@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/stats_repository.dart';
 import '../base_usecase.dart';

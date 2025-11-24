@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/data/adapters/api_adapter.dart';
 import 'package:wp_commander/data/models/api/wp_health_model.dart';
+import 'package:wp_commander/domain/entities/health_issue_entity.dart';
 import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
 import '../../domain/repositories/health_repository.dart';
 import '../../domain/entities/health_entity.dart';
@@ -59,7 +60,7 @@ class HealthRepositoryImpl implements HealthRepository {
     return {
       'responseTime': healthData.responseTime,
       'phpVersion': healthData.phpVersion,
-      'wpVersion': healthData.wpVersion,
+      'wordpressVersion': healthData.wordpressVersion,
     };
   }
 

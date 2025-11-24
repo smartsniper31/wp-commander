@@ -1,18 +1,19 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/local/app_preferences.dart';
 
-part 'app_providers.g.dart';
+final themeNotifierProvider =
+    StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
+  return ThemeNotifier();
+});
 
-@Riverpod(keepAlive: true)
-class ThemeNotifier extends _$ThemeNotifier {
-  @override
-  bool build() {
-    return AppPreferences.isDarkMode;
-  }
+class ThemeNotifier extends StateNotifier<ThemeMode> {
+  ThemeNotifier()
+      : super(AppPreferences.isDarkMode ? ThemeMode.dark : ThemeMode.light);
 
   void toggleTheme() {
-    state = !state;
-    AppPreferences.setDarkMode(state);
+    state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    AppPreferences.setDarkMode(state == ThemeMode.dark);
   }
 }

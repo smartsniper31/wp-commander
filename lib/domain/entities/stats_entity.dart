@@ -4,19 +4,17 @@ class StatsEntity extends Equatable {
   final int posts;
   final int pages;
   final int comments;
-  final int approvedComments;
-  final int pendingComments;
-  final int spamComments;
+  final int pending;
   final int users;
+  final DateTime lastUpdated;
 
   const StatsEntity({
     required this.posts,
     required this.pages,
     required this.comments,
-    required this.approvedComments,
-    required this.pendingComments,
-    required this.spamComments,
+    required this.pending,
     required this.users,
+    required this.lastUpdated,
   });
 
   @override
@@ -24,9 +22,8 @@ class StatsEntity extends Equatable {
         posts,
         pages,
         comments,
-        approvedComments,
-        pendingComments,
-        spamComments,
+        pending,
         users,
+        lastUpdated,
       ];
 }

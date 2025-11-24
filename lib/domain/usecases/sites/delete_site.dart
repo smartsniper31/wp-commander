@@ -8,8 +8,8 @@ class DeleteSiteUseCase {
 
   DeleteSiteUseCase(this._repository);
 
-  Future<bool> call(String id) async {
-    return await _repository.deleteSite(id);
+  Future<void> call(String id) async {
+    await _repository.deleteSite(id);
   }
 }
 

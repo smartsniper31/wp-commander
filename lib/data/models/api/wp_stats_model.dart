@@ -36,10 +36,9 @@ class WPStatsModel {
       posts: totalPosts,
       pages: totalPages,
       comments: totalComments,
-      approvedComments: approvedComments,
-      pendingComments: pendingComments,
-      spamComments: spamComments,
+      pending: pendingComments,
       users: totalUsers,
+      lastUpdated: DateTime.now(),
     );
   }
 }

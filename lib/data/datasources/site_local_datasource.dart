@@ -7,6 +7,7 @@ import '../models/site_model.dart';
 
 abstract class SiteLocalDataSource {
   Future<List<SiteModel>> getSites();
+  Future<SiteModel> cacheSite(SiteModel site);
   Future<void> cacheSites(List<SiteModel> sites);
   Future<void> deleteSite(String url);
 }
@@ -38,8 +39,17 @@ class SiteLocalDataSourceImpl implements SiteLocalDataSource {
   }
 
   @override
-  Future<void> deleteSite(String url) {
-    // TODO: implement deleteSite
-    throw UnimplementedError();
+  Future<void> deleteSite(String url) async {
+    final sites = await getSites();
+    sites.removeWhere((site) => site.url == url);
+    await cacheSites(sites);
+  }
+
+  @override
+  Future<SiteModel> cacheSite(SiteModel site) async {
+    final sites = await getSites();
+    sites.add(site);
+    await cacheSites(sites);
+    return site;
   }
 }

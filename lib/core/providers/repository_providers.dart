@@ -21,16 +21,13 @@ final siteRepositoryProvider = Provider<SiteRepository>((ref) {
 });
 
 final statsRepositoryProvider = Provider<StatsRepository>((ref) {
-  final remoteDataSource = ref.watch(statsRemoteDataSourceProvider);
-  return StatsRepositoryImpl(remoteDataSource: remoteDataSource);
+  return StatsRepositoryImpl(ref);
 });
 
 final healthRepositoryProvider = Provider<HealthRepository>((ref) {
-  final remoteDataSource = ref.watch(healthRemoteDataSourceProvider);
-  return HealthRepositoryImpl(remoteDataSource: remoteDataSource);
+  return HealthRepositoryImpl(ref);
 });
 
 final commentsRepositoryProvider = Provider<CommentsRepository>((ref) {
-  final remoteDataSource = ref.watch(commentsRemoteDataSourceProvider);
-  return CommentsRepositoryImpl(remoteDataSource: remoteDataSource);
+  return CommentsRepositoryImpl(ref);
 });

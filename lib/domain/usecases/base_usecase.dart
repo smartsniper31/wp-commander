@@ -37,7 +37,7 @@ class UseCaseResult<Result> {
     required Function(UseCaseException error) onError,
   }) {
     if (isSuccess && data != null) {
-      onSuccess(data!);
+      onSuccess(data as Result);
     } else if (error != null) {
       onError(error!);
     }
