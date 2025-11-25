@@ -40,7 +40,7 @@ class CommentsListState {
 
   bool get hasError => error != null;
   int get pendingCount {
-    return comments.where((comment) => comment.isPending).length;
+    return comments.where((comment) => comment.status == 'hold').length;
   }
   
   List<CommentEntity> get filteredComments {
@@ -96,7 +96,19 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
     // TODO: Implémenter l'approbation via le repository
     final updatedComments = state.comments.map((comment) {
       if (comment.id == commentId) {
-        return comment.copyWith(status: 'approved');
+        return CommentEntity(
+          id: comment.id,
+          authorName: comment.authorName,
+          authorEmail: comment.authorEmail,
+          authorAvatar: comment.authorAvatar,
+          content: comment.content,
+          date: comment.date,
+          status: 'approved',
+          postTitle: comment.postTitle,
+          postId: comment.postId,
+          authorIp: comment.authorIp,
+          authorUrl: comment.authorUrl,
+        );
       }
       return comment;
     }).toList();

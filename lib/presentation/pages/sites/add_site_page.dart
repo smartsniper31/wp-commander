@@ -2,120 +2,121 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
 
-import '../../providers/ui/app_ui_provider.dart';
+import '../../providers/site/site_form_provider.dart';
 import '../../providers/site/site_list_provider.dart';
 import '../../widgets/animations/fade_in_animation.dart';
-import '../../widgets/common/animated_card.dart';
+import '../../widgets/common/animated_button.dart';
 import '../../widgets/forms/custom_text_field.dart';
 import '../../widgets/forms/api_key_input.dart';
 import '../../widgets/animations/staggered_fade_in_animation.dart';
 
-class AddSitePage extends ConsumerStatefulWidget {
+class AddSitePage extends ConsumerWidget {
   const AddSitePage({super.key});
 
   @override
-  ConsumerState<AddSitePage> createState() => _AddSitePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formState = ref.watch(siteFormProvider);
+    final formNotifier = ref.read(siteFormProvider.notifier);
 
-class _AddSitePageState extends ConsumerState<AddSitePage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _urlController = TextEditingController();
-  final _apiKeyController = TextEditingController();
-
-  String? _validationError;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _urlController.dispose();
-    _apiKeyController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final uiState = ref.watch(appUIProvider);
+    ref.listen<AsyncValue<void>>(
+      siteListProvider,
+      (_, state) => state.whenOrNull(
+        error: (err, __) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(err.toString())),
+          );
+        },
+        data: (_) {
+          formNotifier.reset();
+          Navigator.of(context).pop();
+        },
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ajouter un site'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: uiState.isLoading ? null : () => {}, // context.pop(),
-        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Formulaire
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildAnimatedForm(),
-
-                    // Message d'erreur
-                    if (_validationError != null) ...[
-                      const SizedBox(height: 16),
-                      _buildErrorDisplay(),
-                    ],
-
-                    // Informations
-                    const SizedBox(height: 24),
-                    FadeInAnimation(
-                      child: _buildInfoCard(),
-                    ),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildAnimatedForm(formNotifier, formState),
+                  if (formState.errorMessage != null) ...[
+                    const SizedBox(height: 16),
+                    _buildErrorDisplay(context, formState.errorMessage!),
                   ],
-                ),
+                  const SizedBox(height: 24),
+                  const FadeInAnimation(
+                    child: _InfoCard(),
+                  ),
+                ],
               ),
-
-              // Bouton d'action
-              SizedBox(
-                width: double.infinity,
-                child: AnimatedButton(
-                  onPressed: _addSite,
-                  enabled: !uiState.isLoading,
-                  child: const Text('Ajouter le site'),
-                ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: AnimatedButton(
+                onPressed: () {
+                  if (formNotifier.validate()) {
+                    final site = SiteEntity(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      name: formState.name,
+                      url: formState.url,
+                      apiKey: formState.apiKey,
+                      createdAt: DateTime.now(),
+                      healthScore: 0,
+                      isConnected: false,
+                      lastSync: null,
+                      phpVersion: null,
+                      wordpressVersion: null,
+                    );
+                    ref.read(siteListProvider.notifier).addSite(site);
+                  }
+                },
+                enabled: !ref.watch(siteListProvider).isLoading,
+                child: const Text('Ajouter le site'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedForm() {
+  Widget _buildAnimatedForm(SiteFormNotifier notifier, SiteFormState state) {
     return StaggeredFadeInAnimation(
       delayBetween: const Duration(milliseconds: 100),
       children: [
         CustomTextField(
           label: 'Nom du site',
           hint: 'Mon Site WordPress',
-          controller: _nameController,
+          initialValue: state.name,
+          onChanged: notifier.updateName,
           required: true,
         ),
         const SizedBox(height: 16),
         CustomTextField(
           label: 'URL du site',
           hint: 'https://monsite.com',
-          controller: _urlController,
+          initialValue: state.url,
+          onChanged: notifier.updateUrl,
           keyboardType: TextInputType.url,
           required: true,
         ),
         const SizedBox(height: 16),
         ApiKeyInput(
-          controller: _apiKeyController,
+          initialValue: state.apiKey,
+          onChanged: notifier.updateApiKey,
           showStrength: true,
         ),
       ],
     );
   }
 
-  Widget _buildErrorDisplay() {
+  Widget _buildErrorDisplay(BuildContext context, String message) {
     return FadeInAnimation(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -132,7 +133,7 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                _validationError!,
+                message,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.error,
                 ),
@@ -143,8 +144,13 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
       ),
     );
   }
+}
 
-  Widget _buildInfoCard() {
+class _InfoCard extends StatelessWidget {
+  const _InfoCard();
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -178,62 +184,5 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
         ),
       ),
     );
-  }
-
-  Future<void> _addSite() async {
-    if (ref.read(appUIProvider).isLoading) return;
-    final uiNotifier = ref.read(appUIProvider.notifier);
-
-    final name = _nameController.text.trim();
-    final url = _urlController.text.trim();
-    final apiKey = _apiKeyController.text.trim();
-
-    if (name.isEmpty || url.isEmpty || apiKey.isEmpty) {
-      setState(() {
-        _validationError = 'Veuillez remplir tous les champs.';
-      });
-      return;
-    }
-
-    setState(() {
-      _validationError = null;
-    });
-
-    uiNotifier.showLoading('Vérification de la clé API...');
-
-    final isValid = await ref
-        .read(siteListProvider.notifier)
-        .validateApiKey(url: url, apiKey: apiKey);
-
-    if (!isValid) {
-      uiNotifier.hideLoading();
-      setState(() {
-        _validationError = 'La clé API ou l\'URL est invalide.';
-      });
-      return;
-    }
-
-    uiNotifier.showLoading('Ajout du site en cours...');
-
-    final site = SiteEntity(
-      id: DateTime.now().toIso8601String(),
-      name: name,
-      url: url,
-      apiKey: apiKey,
-      createdAt: DateTime.now(),
-    );
-
-    try {
-      await ref.read(siteListProvider.notifier).addSite(site);
-      uiNotifier.hideLoading();
-      if (mounted) {
-        // context.pop();
-      }
-    } catch (e) {
-      uiNotifier.hideLoading();
-      setState(() {
-        _validationError = 'Erreur lors de l\'ajout du site: ${e.toString()}';
-      });
-    }
   }
 }

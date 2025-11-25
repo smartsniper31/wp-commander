@@ -23,6 +23,19 @@ class HealthEntity extends Equatable {
     required this.issues,
   });
 
+  static HealthEntity empty() {
+    return const HealthEntity(
+      phpVersion: '',
+      mysqlVersion: '',
+      wordpressVersion: '',
+      status: 'good',
+      good: 0,
+      recommended: 0,
+      critical: 0,
+      issues: [],
+    );
+  }
+
   double get healthScore {
     if (critical == 0) return 100.0;
     final totalIssues = good + recommended + critical;

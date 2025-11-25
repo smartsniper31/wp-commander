@@ -37,8 +37,8 @@ class HealthMonitorState {
   }
 
   bool get hasError => error != null;
-  bool get needsAttention => health.needsAttention;
-  bool get isCritical => health.isCritical;
+  bool get needsAttention => health.status != 'good';
+  bool get isCritical => health.critical > 0;
 }
 
 // Notifier pour le monitoring de santé
