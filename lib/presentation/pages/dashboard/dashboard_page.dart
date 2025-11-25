@@ -1,59 +1,98 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
 
-class DashboardPage extends ConsumerWidget {
+import '../../providers/site/site_list_provider.dart';
+import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/error_retry_widget.dart';
+import '../../widgets/animations/fade_in_animation.dart';
+import 'dashboard_view.dart';
+
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sitesAsyncValue = ref.watch(sitesNotifierProvider);
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends ConsumerState<DashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Charger les sites au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(siteListProvider.notifier).loadSites();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final siteState = ref.watch(siteListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sites'),
+        title: const Text('Tableau de bord'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Implement add site functionality
+              // TODO: Naviguer vers les paramètres
             },
           ),
         ],
       ),
-      body: sitesAsyncValue.when(
-        data: (sites) {
-          if (sites.isEmpty) {
-            return const Center(
-              child: Text('No sites yet. Add one!'),
-            );
-          }
-          return ListView.builder(
-            itemCount: sites.length,
-            itemBuilder: (context, index) {
-              final site = sites[index];
-              return ListTile(
-                title: Text(site.name),
-                subtitle: Text(site.url),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    ref.read(sitesNotifierProvider.notifier).deleteSite(site);
-                  },
-                ),
-                onTap: () {
-                  // TODO: Navigate to site details page
-                },
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Text('Error: $error'),
-        ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        child: _buildBody(siteState),
       ),
+      floatingActionButton: siteState.hasSites 
+          ? FloatingActionButton(
+              onPressed: _navigateToAddSite,
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
+  }
+
+  Widget _buildBody(SiteListState siteState) {
+    if (siteState.isLoading && !siteState.hasLoaded) {
+      return const LoadingIndicator(message: 'Chargement des sites...');
+    }
+
+    if (siteState.hasError) {
+      return ErrorRetryWidget(
+        key: const ValueKey('error'),
+        message: 'Erreur de chargement',
+        details: siteState.error,
+        onRetry: () => ref.read(siteListProvider.notifier).loadSites(),
+      );
+    }
+
+    if (siteState.isEmpty) {
+      return FadeInAnimation(
+        key: const ValueKey('empty'),
+        child: EmptyStateWidget(
+          title: 'Aucun site configuré',
+          description: 'Commencez par ajouter votre premier site WordPress pour suivre ses statistiques et sa santé.',
+          icon: Icons.dashboard,
+          actions: [
+            EmptyStateAction(
+              label: 'Ajouter un site',
+              onPressed: _navigateToAddSite,
+              isPrimary: true,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return DashboardView(
+      key: const ValueKey('data'),
+      sites: siteState.sites,
+    );
+  }
+
+  void _navigateToAddSite() {
+    // context.push(AppRoutes.addSite);
   }
 }

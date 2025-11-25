@@ -1,0 +1,10 @@
+{
+  "test_timeout": 120,
+  "test_randomize_ordering_seed": "42",
+  "test_reporters": ["json", "console"],
+  "test_coverage": {
+    "enabled": true,
+    "include": ["lib/**"],
+    "exclude": ["lib/main.dart", "lib/**/*.g.dart"]
+  }
+}

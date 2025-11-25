@@ -1,1 +1,31 @@
-\'../value_objects.dart\';\n\nclass SiteNameVO implements ValueObject<String> {\n  final String _value;\n  final String? _error;\n\n  SiteNameVO._(this._value, this._error);\n\n  factory SiteNameVO.create(String input) {\n    final trimmedInput = input.trim();\n    \n    if (trimmedInput.isEmpty) {\n      return SiteNameVO._(trimmedInput, \'Le nom du site est obligatoire\');\n    }\n\n    if (trimmedInput.length < 2) {\n      return SiteNameVO._(trimmedInput, \'Le nom du site est trop court\');\n    }\n\n    if (trimmedInput.length > 100) {\n      return SiteNameVO._(trimmedInput, \'Le nom du site est trop long\');\n    }\n\n    // Validation des caractères\n    final invalidChars = RegExp(r\'[<>:\"/\\\\|?*]\');\n    if (invalidChars.hasMatch(trimmedInput)) {\n      return SiteNameVO._(trimmedInput, \'Le nom contient des caractères invalides\');\n    }\n\n    return SiteNameVO._(trimmedInput, null);\n  }\n\n  @override\n  String get value => _value;\n\n  @override\n  String? get error => _error;\n\n  @override\n  bool get isValid => _error == null;\n\n  @override\n  String toString() => _value;\n\n  @override\n  bool operator ==(Object other) {\n    return identical(this, other) ||\n        (other is SiteNameVO &&\n            runtimeType == other.runtimeType &&\n            _value == other._value);\n  }\n\n  @override\n  int get hashCode => _value.hashCode;\n}\n
+import 'package:wp_commander/domain/value_objects.dart';
+
+class SiteNameVO extends ValueObject<String> {
+  @override
+  final String value;
+
+  @override
+  final String? error;
+
+  const SiteNameVO._(this.value, {this.error});
+
+  factory SiteNameVO.create(String input) {
+    final trimmedInput = input.trim();
+    
+    if (trimmedInput.isEmpty) {
+      return SiteNameVO._(trimmedInput, error: 'Le nom du site est obligatoire');
+    }
+
+    if (trimmedInput.length > 50) {
+      return SiteNameVO._(trimmedInput, error: 'Nom de site trop long');
+    }
+
+    return SiteNameVO._(trimmedInput);
+  }
+
+  @override
+  bool get isValid => error == null;
+
+  @override
+  List<Object?> get props => [value, error];
+}

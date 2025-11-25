@@ -37,15 +37,25 @@ dependencies:
   equatable: ^2.0.7
   logging: ^1.2.0
   dartz: ^0.10.1
+  either_dart: ^1.0.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
+  mockito: ^5.4.0
+  build_runner: ^2.4.0
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.9
   hive_generator: ^2.0.1
-  mockito: ^5.4.4
   riverpod_generator: ^2.4.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/icon.png"
 
 flutter:
   uses-material-design: true

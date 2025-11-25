@@ -1,1 +1,52 @@
-\'../value_objects.dart\';\n\nclass HealthScoreVO implements ValueObject<int> {\n  final int _value;\n  final String? _error;\n\n  HealthScoreVO._(this._value, this._error);\n\n  factory HealthScoreVO.create(int input) {\n    if (input < 0 || input > 100) {\n      return HealthScoreVO._(input, \'Le score de santé doit être entre 0 et 100\');\n    }\n\n    return HealthScoreVO._(input, null);\n  }\n\n  // Créer depuis un pourcentage\n  factory HealthScoreVO.fromPercentage(double percentage) {\n    final score = (percentage * 100).round();\n    return HealthScoreVO.create(score.clamp(0, 100));\n  }\n\n  @override\n  int get value => _value;\n\n  @override\n  String? get error => _error;\n\n  @override\n  bool get isValid => _error == null;\n\n  // Catégories de santé\n  String get status {\n    if (_value >= 90) return \'excellent\';\n    if (_value >= 80) return \'bon\';\n    if (_value >= 70) return \'moyen\';\n    if (_value >= 60) return \'faible\';\n    return \'critique\';\n  }\n\n  String get emoji {\n    switch (status) {\n      case \'excellent\': return \'🟢\';\n      case \'bon\': return \'🟡\';\n      case \'moyen\': return \'🟠\';\n      case \'faible\': return \'🔴\';\n      case \'critique\': return \'💀\';\n      default: return \'⚪\';\n    }\n  }\n\n  bool get needsAttention => _value < 80;\n  bool get isCritical => _value < 60;\n\n  @override\n  String toString() => \'$_value/100\';\n\n  @override\n  bool operator ==(Object other) {\n    return identical(this, other) ||\n        (other is HealthScoreVO &&\n            runtimeType == other.runtimeType &&\n            _value == other._value);\n  }\n\n  @override\n  int get hashCode => _value.hashCode;\n}\n
+import 'package:flutter/material.dart';
+import 'package:wp_commander/domain/value_objects.dart';
+
+class HealthScoreVO extends ValueObject<int> {
+  @override
+  final int value;
+
+  @override
+  final String? error;
+
+  const HealthScoreVO._(this.value, {this.error});
+
+  factory HealthScoreVO.create(int input) {
+    if (input < 0 || input > 100) {
+      return HealthScoreVO._(input, error: 'Score de santé invalide');
+    }
+
+    return HealthScoreVO._(input);
+  }
+
+  @override
+  bool get isValid => error == null;
+
+  Color get color {
+    if (value >= 80) {
+      return Colors.green;
+    }
+    if (value >= 50) {
+      return Colors.orange;
+    }
+    return Colors.red;
+  }
+
+  String get description {
+    if (value >= 90) {
+      return 'Excellent';
+    }
+    if (value >= 80) {
+      return 'Bon';
+    }
+    if (value >= 50) {
+      return 'Moyen';
+    }
+    if (value >= 30) {
+      return 'Faible';
+    }
+    return 'Critique';
+  }
+
+  @override
+  List<Object?> get props => [value, error];
+}

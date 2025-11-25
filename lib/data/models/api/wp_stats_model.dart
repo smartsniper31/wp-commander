@@ -1,44 +1,36 @@
-import '../../../domain/entities/stats_entity.dart';
+import 'package:equatable/equatable.dart';
 
-class WPStatsModel {
-  final int totalPosts;
-  final int totalPages;
-  final int totalComments;
+class WPStatsModel extends Equatable {
+  final int posts;
+  final int pages;
+  final int comments;
   final int approvedComments;
-  final int pendingComments;
-  final int spamComments;
-  final int totalUsers;
 
-  WPStatsModel({
-    required this.totalPosts,
-    required this.totalPages,
-    required this.totalComments,
+  const WPStatsModel({
+    required this.posts,
+    required this.pages,
+    required this.comments,
     required this.approvedComments,
-    required this.pendingComments,
-    required this.spamComments,
-    required this.totalUsers,
   });
 
   factory WPStatsModel.fromJson(Map<String, dynamic> json) {
     return WPStatsModel(
-      totalPosts: json['posts']?['total'] ?? 0,
-      totalPages: json['pages']?['total'] ?? 0,
-      totalComments: json['comments']?['total'] ?? 0,
-      approvedComments: json['comments']?['approved'] ?? 0,
-      pendingComments: json['comments']?['pending'] ?? 0,
-      spamComments: json['comments']?['spam'] ?? 0,
-      totalUsers: json['users']?['total'] ?? 0,
+      posts: json['posts'] ?? 0,
+      pages: json['pages'] ?? 0,
+      comments: json['comments'] ?? 0,
+      approvedComments: json['approved_comments'] ?? 0,
     );
   }
 
-  StatsEntity toEntity() {
-    return StatsEntity(
-      posts: totalPosts,
-      pages: totalPages,
-      comments: totalComments,
-      pending: pendingComments,
-      users: totalUsers,
-      lastUpdated: DateTime.now(),
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      'posts': posts,
+      'pages': pages,
+      'comments': comments,
+      'approved_comments': approvedComments,
+    };
   }
+
+  @override
+  List<Object?> get props => [posts, pages, comments, approvedComments];
 }

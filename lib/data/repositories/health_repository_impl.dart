@@ -28,11 +28,9 @@ class HealthRepositoryImpl implements HealthRepository {
     final cacheKey = 'health_$siteId';
     final cachedData = CacheManager.getValidData(cacheKey);
 
-    if (cachedData != null) {
-      final healthData = jsonDecode(cachedData);
-      return ApiAdapter.fromWpHealth(WPHealthModel.fromJson(healthData));
-    }
-
+    final healthData = jsonDecode(cachedData);
+    return ApiAdapter.fromWpHealth(WPHealthModel.fromJson(healthData));
+  
     final dataSource = await _getDataSource(siteId);
     final healthData = await dataSource.getSiteHealth();
 

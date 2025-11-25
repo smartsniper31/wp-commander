@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:wp_commander/core/performance/performance_monitor.dart';
 import 'package:wp_commander/core/utils/logger.dart';
 
 import 'core/providers/app_providers.dart';
@@ -12,10 +14,17 @@ import 'core/localization/app_localizations.dart';
 import 'data/datasources/local/app_preferences.dart';
 import 'data/datasources/local/cache_manager.dart';
 import 'data/models/local/cached_data_model.dart';
+import 'domain/services/notification_service.dart';
 import 'presentation/pages/error/initialization_error_page.dart';
 import 'domain/services/security_service.dart';
+import 'presentation/widgets/common/global_loading_overlay.dart';
 
 void main() async {
+  // Désactiver les logs en production
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   try {
     // Initialisation Flutter
     WidgetsFlutterBinding.ensureInitialized();
@@ -29,12 +38,6 @@ void main() async {
     // Enregistrer les adapters Hive
     Hive.registerAdapter(CachedDataModelAdapter());
     
-    // Initialiser le cache
-    await CacheManager.init();
-    
-    // Nettoyer le cache expiré au démarrage
-    await CacheManager.cleanExpiredCache();
-    
     await AppPreferences.init();
     await AppPreferences.incrementLaunchCount();
     if (AppPreferences.firstLaunchDate == null) {
@@ -44,6 +47,18 @@ void main() async {
     // Initialiser la sécurité
     const encryptionKey = 'wp_commander_secure_key_2024'; // À externaliser
     SecurityService.initialize(encryptionKey);
+    
+    // Initialiser le cache
+    await CacheManager.init();
+  
+    // Initialiser les notifications
+    await NotificationService.initialize();
+  
+    // Nettoyer le cache expiré au démarrage
+    await CacheManager.cleanExpiredCache();
+  
+    // Initialiser le monitoring de performance
+    PerformanceMonitor.clearMetrics();
     
     runApp(
       const ProviderScope(
@@ -82,6 +97,9 @@ class MyApp extends ConsumerWidget {
       ],
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return GlobalLoadingOverlay(child: child!);
+      },
     );
   }
 }

@@ -1,1 +1,51 @@
-\'../value_objects.dart\';\n\nclass ApiKeyVO implements ValueObject<String> {\n  final String _value;\n  final String? _error;\n\n  ApiKeyVO._(this._value, this._error);\n\n  factory ApiKeyVO.create(String input) {\n    final trimmedInput = input.trim();\n    \n    if (trimmedInput.isEmpty) {\n      return ApiKeyVO._(trimmedInput, \'La clé API est obligatoire\');\n    }\n\n    // Validation de base pour une clé API WordPress\n    if (trimmedInput.length < 10) {\n      return ApiKeyVO._(trimmedInput, \'Clé API trop courte\');\n    }\n\n    if (trimmedInput.length > 255) {\n      return ApiKeyVO._(trimmedInput, \'Clé API trop longue\');\n    }\n\n    // Pattern pour clé API (caractères alphanumériques + certains symboles)\n    final apiKeyPattern = RegExp(r\'^[a-zA-Z0-9_\\-!@#$%^&*()+={}|:;\"<>,.?\\/\\[\\]~]+$\');\n    \n    if (!apiKeyPattern.hasMatch(trimmedInput)) {\n      return ApiKeyVO._(trimmedInput, \'Clé API contient des caractères invalides\');\n    }\n\n    return ApiKeyVO._(trimmedInput, null);\n  }\n\n  @override\n  String get value => _value;\n\n  @override\n  String? get error => _error;\n\n  @override\n  bool get isValid => _error == null;\n\n  @override\n  String toString() => \'••••${_value.substring(_value.length - 4)}\';\n\n  // Version masquée pour l\'affichage\n  String get maskedValue {\n    if (_value.length <= 8) {\n      return \'•\' * _value.length;\n    }\n    return \'${_value.substring(0, 4)}${\'•\' * (_value.length - 8)}${_value.substring(_value.length - 4)}\';\n  }\n\n  @override\n  bool operator ==(Object other) {\n    return identical(this, other) ||\n        (other is ApiKeyVO &&\n            runtimeType == other.runtimeType &&\n            _value == other._value);\n  }\n\n  @override\n  int get hashCode => _value.hashCode;\n}\n
+import 'package:wp_commander/domain/value_objects.dart';
+
+class ApiKeyVO extends ValueObject<String> {
+  @override
+  final String value;
+
+  @override
+  final String? error;
+
+  const ApiKeyVO._(this.value, {this.error});
+
+  factory ApiKeyVO.create(String input) {
+    final trimmedInput = input.trim();
+    
+    if (trimmedInput.isEmpty) {
+      return ApiKeyVO._(trimmedInput, error: 'La clé API est obligatoire');
+    }
+
+    if (trimmedInput.length < 10) {
+      return ApiKeyVO._(trimmedInput, error: 'Clé API trop courte');
+    }
+
+    if (trimmedInput.length > 255) {
+      return ApiKeyVO._(trimmedInput, error: 'Clé API trop longue');
+    }
+
+    final apiKeyPattern = RegExp(r'^[a-zA-Z0-9_\\-!@#\$%^&*()+={}|:;"<>,.?/\\\[\\\]~]+\$');
+    
+    if (!apiKeyPattern.hasMatch(trimmedInput)) {
+      return ApiKeyVO._(trimmedInput, error: 'Clé API contient des caractères invalides');
+    }
+
+    return ApiKeyVO._(trimmedInput);
+  }
+
+  @override
+  bool get isValid => error == null;
+
+  String get maskedValue {
+    if (value.length > 8) {
+      return '\${value.substring(0, 4)}...\${value.substring(value.length - 4)}';
+    }
+    if (value.isEmpty) {
+        return '';
+    }
+    return '...\${value.substring(value.length - 4)}';
+  }
+
+  @override
+  List<Object?> get props => [value, error];
+}

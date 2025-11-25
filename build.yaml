@@ -1,0 +1,6 @@
+targets:
+  $default:
+    builders:
+      mockito:
+        generate_for:
+          - test/domain/usecases/*_test.dart
