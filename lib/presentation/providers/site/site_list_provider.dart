@@ -2,7 +2,7 @@ import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/site_entity.dart';
-import '../../../../domain/usecases/sites/add_site.dart';
+import '../../../../domain/usecases/sites/add_site.dart' hide addSiteUseCaseProvider;
 import '../../../../domain/usecases/sites/delete_site.dart';
 import '../../../../domain/usecases/sites/get_sites.dart';
 import '../../../../domain/usecases/sites/update_site.dart';
