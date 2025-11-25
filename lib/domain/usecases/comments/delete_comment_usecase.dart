@@ -1,7 +1,6 @@
-import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/errors/failures.dart';
+import '../../../core/errors/exceptions.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../repositories/comments_repository.dart';
 
@@ -10,12 +9,17 @@ class DeleteCommentUseCase {
 
   DeleteCommentUseCase(this._repository);
 
-  Future<Either<Failure, bool>> call(String siteId, int commentId) async {
-    return await _repository.deleteComment(siteId, commentId);
+  Future<void> execute(String siteId, int commentId) async {
+    try {
+      await _repository.deleteComment(siteId, commentId);
+    } on UseCaseException {
+      rethrow;
+    } catch (e) {
+      throw UseCaseException(message: e.toString());
+    }
   }
 }
 
 final deleteCommentUseCaseProvider = Provider<DeleteCommentUseCase>((ref) {
-  final repository = ref.watch(commentsRepositoryProvider);
-  return DeleteCommentUseCase(repository);
+  return DeleteCommentUseCase(ref.read(commentsRepositoryProvider));
 });

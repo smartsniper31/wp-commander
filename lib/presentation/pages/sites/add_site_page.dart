@@ -18,19 +18,38 @@ class AddSitePage extends ConsumerWidget {
     final formState = ref.watch(siteFormProvider);
     final formNotifier = ref.read(siteFormProvider.notifier);
 
-    ref.listen<AsyncValue<void>>(
+    // Listen for state changes in the siteListProvider to handle side-effects
+    // like navigation or showing snackbars after an operation.
+    ref.listen<AsyncValue<List<SiteEntity>>>(
       siteListProvider,
-      (_, state) => state.whenOrNull(
-        error: (err, __) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(err.toString())),
+      (previous, next) {
+        // We are only interested in the transition from a loading state.
+        if (previous?.isLoading ?? false) {
+          next.when(
+            data: (_) {
+              // Operation succeeded
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Site ajouté avec succès!')),
+              );
+              formNotifier.reset();
+              Navigator.of(context).pop();
+            },
+            error: (err, __) {
+              // Operation failed
+              if (!context.mounted) return;
+              final message =
+                  err is Exception ? err.toString() : 'Une erreur est survenue.';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            },
+            loading: () {
+              // Still loading, do nothing.
+            },
           );
-        },
-        data: (_) {
-          formNotifier.reset();
-          Navigator.of(context).pop();
-        },
-      ),
+        }
+      },
     );
 
     return Scaffold(
@@ -59,24 +78,24 @@ class AddSitePage extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: AnimatedButton(
-                onPressed: () {
-                  if (formNotifier.validate()) {
-                    final site = SiteEntity(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: formState.name,
-                      url: formState.url,
-                      apiKey: formState.apiKey,
-                      createdAt: DateTime.now(),
-                      healthScore: 0,
-                      isConnected: false,
-                      lastSync: null,
-                      phpVersion: null,
-                      wordpressVersion: null,
-                    );
-                    ref.read(siteListProvider.notifier).addSite(site);
-                  }
-                },
-                enabled: !ref.watch(siteListProvider).isLoading,
+                // The button is disabled when the list is in a loading state,
+                // preventing double submissions.
+                onPressed: ref.watch(siteListProvider).isLoading
+                    ? null
+                    : () {
+                        if (formNotifier.validate()) {
+                          final site = SiteEntity(
+                            id: DateTime.now().millisecondsSinceEpoch.toString(), // Temp ID
+                            name: formState.name,
+                            url: formState.url,
+                            apiKey: formState.apiKey,
+                            createdAt: DateTime.now(),
+                          );
+                          // Calling addSite will trigger the state change
+                          // which is handled by the ref.listen above.
+                          ref.read(siteListProvider.notifier).addSite(site);
+                        }
+                      },
                 child: const Text('Ajouter le site'),
               ),
             ),

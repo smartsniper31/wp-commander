@@ -4,14 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
 import 'package:wp_commander/presentation/widgets/animations/fade_in_animation.dart';
 
-import '../../notifiers/sites_notifier.dart';
+import '../../providers/site/site_list_provider.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final siteAsync = ref.watch(sitesNotifierProvider);
+    final siteAsync = ref.watch(siteListProvider);
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -55,7 +55,7 @@ class DashboardPage extends ConsumerWidget {
               )
             : RefreshIndicator(
                 onRefresh: () async {
-                  ref.invalidate(sitesNotifierProvider);
+                  ref.invalidate(siteListProvider);
                 },
                 child: ListView.builder(
                   itemCount: sites.length,

@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/site_entity.dart';
-import '../../../../domain/usecases/sites/add_site.dart' hide addSiteUseCaseProvider;
-import '../../../../domain/usecases/sites/delete_site.dart';
-import '../../../../domain/usecases/sites/get_sites.dart';
-import '../../../../domain/usecases/sites/update_site.dart';
-import '../../../core/providers/usecase_providers.dart';
+import '../../../../domain/usecases/sites/add_site_usecase.dart';
+import '../../../../domain/usecases/sites/delete_site_usecase.dart';
+import '../../../../domain/usecases/sites/get_sites_usecase.dart';
+import '../../../../domain/usecases/sites/update_site_usecase.dart';
 import 'package:collection/collection.dart';
 import '../../../../domain/repositories/site_repository.dart';
 import '../../../core/providers/repository_providers.dart';
@@ -30,52 +29,50 @@ class SiteListNotifier extends AsyncNotifier<List<SiteEntity>> {
     _deleteSiteUseCase = ref.watch(deleteSiteUseCaseProvider);
     _siteRepository = ref.watch(siteRepositoryProvider);
 
-    final result = await _getSitesUseCase();
-    return result.fold(
-      (failure) => throw failure,
-      (sites) => sites,
-    );
+    return await _getSitesUseCase.execute();
   }
 
   Future<void> addSite(SiteEntity site) async {
     state = const AsyncValue.loading();
-    final result = await _addSiteUseCase(site);
-    result.fold(
-      (failure) => state = AsyncValue.error(failure, StackTrace.current),
-      (site) async {
-        final currentState = await future;
-        state = AsyncValue.data([...currentState, site]);
-      },
-    );
+    try {
+      final params = AddSiteParams(
+        name: site.name,
+        url: site.url,
+        apiKey: site.apiKey,
+      );
+      final newSite = await _addSiteUseCase.execute(params);
+      final currentSites = await future;
+      state = AsyncValue.data([...currentSites, newSite]);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> updateSite(SiteEntity site) async {
     state = const AsyncValue.loading();
-    final result = await _updateSiteUseCase(site);
-    result.fold(
-      (failure) => state = AsyncValue.error(failure, StackTrace.current),
-      (_) async {
-        final currentState = await future;
-        final index = currentState.indexWhere((s) => s.id == site.id);
-        if (index != -1) {
-          final newSites = List.from(currentState);
-          newSites[index] = site;
-          state = AsyncValue.data(newSites);
-        }
-      },
-    );
+    try {
+      await _updateSiteUseCase.execute(site);
+      final currentSites = await future;
+      final index = currentSites.indexWhere((s) => s.id == site.id);
+      if (index != -1) {
+        final newSites = List<SiteEntity>.from(currentSites);
+        newSites[index] = site;
+        state = AsyncValue.data(newSites);
+      }
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> deleteSite(String id) async {
     state = const AsyncValue.loading();
-    final result = await _deleteSiteUseCase(id);
-    result.fold(
-      (failure) => state = AsyncValue.error(failure, StackTrace.current),
-      (_) async {
-        final currentState = await future;
-        state = AsyncValue.data(currentState.where((s) => s.id != id).toList());
-      },
-    );
+    try {
+      await _deleteSiteUseCase.execute(id);
+      final currentSites = await future;
+      state = AsyncValue.data(currentSites.where((s) => s.id != id).toList());
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<bool> validateApiKey(
@@ -98,8 +95,7 @@ final siteCountProvider = Provider<int>((ref) {
   return ref.watch(siteListProvider).asData?.value.length ?? 0;
 });
 
-final findSiteByIdProvider =
-    Provider.family<SiteEntity?, String>((ref, id) {
+final findSiteByIdProvider = Provider.family<SiteEntity?, String>((ref, id) {
   final sites = ref.watch(siteListProvider).asData?.value;
   return sites?.firstWhereOrNull((site) => site.id == id);
 });

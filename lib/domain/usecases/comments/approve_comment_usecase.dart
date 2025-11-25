@@ -1,25 +1,25 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/exceptions.dart';
+import '../../../core/providers/repository_providers.dart';
 import '../../repositories/comments_repository.dart';
-import '../base_usecase.dart';
 
-class ApproveCommentUseCase extends UseCase<void, ApproveCommentParams> {
-  final CommentsRepository repository;
+class ApproveCommentUseCase {
+  final CommentsRepository _repository;
 
-  ApproveCommentUseCase(this.repository);
+  ApproveCommentUseCase(this._repository);
 
-  @override
-  Future<UseCaseResult<void>> execute(ApproveCommentParams params) async {
-    // TODO: Implémenter
-    throw UnimplementedError();
+  Future<void> execute(String siteId, int commentId) async {
+    try {
+      await _repository.approveComment(siteId, commentId);
+    } on UseCaseException {
+      rethrow;
+    } catch (e) {
+      throw UseCaseException(message: e.toString());
+    }
   }
 }
 
-class ApproveCommentParams {
-  final String siteId;
-  final String commentId;
-
-  const ApproveCommentParams({
-    required this.siteId,
-    required this.commentId,
-  });
-}
+final approveCommentUseCaseProvider = Provider<ApproveCommentUseCase>((ref) {
+  return ApproveCommentUseCase(ref.read(commentsRepositoryProvider));
+});

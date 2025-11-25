@@ -9,6 +9,7 @@ import '../adapters/api_adapter.dart';
 import '../models/api/wp_stats_model.dart';
 import '../../domain/entities/site_entity.dart';
 import '../../core/errors/exceptions.dart';
+import 'package:wp_commander/data/repositories/site_repository_impl.dart';
 import '../../core/providers/repository_providers.dart';
 
 class StatsRepositoryImpl implements StatsRepository {
@@ -16,13 +17,12 @@ class StatsRepositoryImpl implements StatsRepository {
 
   StatsRepositoryImpl(this.ref);
 
-  // Using a real implementation instead of a mock
   Future<SiteEntity> _getSiteById(String siteId) async {
-    final result = await ref.read(siteRepositoryProvider).getSiteById(siteId);
-    return result.fold(
-      (failure) => throw failure,
-      (site) => site,
-    );
+    final site = await ref.read(siteRepositoryProvider).getSiteById(siteId);
+    if (site == null) {
+      throw UseCaseException(message: "Site not found: $siteId");
+    }
+    return site;
   }
 
   @override
@@ -47,6 +47,9 @@ class StatsRepositoryImpl implements StatsRepository {
 
       return statsEntity;
     } catch (e) {
+      if (e is UseCaseException) {
+        rethrow;
+      }
       try {
         final cachedStats = await getCachedStats(siteId);
         if (cachedStats != StatsEntity.empty()) {
@@ -55,7 +58,7 @@ class StatsRepositoryImpl implements StatsRepository {
       } catch (_) {
         //  If cache also fails, throw the original error
       }
-      throw RepositoryException(
+      throw UseCaseException(
         message: 'Failed to get dashboard stats: ${e.toString()}',
       );
     }
@@ -95,7 +98,10 @@ class StatsRepositoryImpl implements StatsRepository {
         'user_engagement': await _getUserEngagement(apiDataSource),
       };
     } catch (e) {
-      throw RepositoryException(
+       if (e is UseCaseException) {
+        rethrow;
+      }
+      throw UseCaseException(
         message: 'Failed to get advanced analytics: ${e.toString()}',
       );
     }
@@ -106,9 +112,13 @@ class StatsRepositoryImpl implements StatsRepository {
     final cachedItem = await CacheManager.get('stats_$siteId');
     if (cachedItem == null) return true;
 
-    final timestamp = DateTime.parse(cachedItem['timestamp']);
-    const expiry = Duration(minutes: 15); // Define expiry duration
-    return DateTime.now().difference(timestamp) > expiry;
+    try {
+        final timestamp = DateTime.parse(cachedItem['timestamp']);
+        const expiry = Duration(minutes: 15);
+        return DateTime.now().difference(timestamp) > expiry;
+    } catch (e) {
+        return true;
+    }
   }
 
   Future<Map<String, dynamic>> _getTrafficSources(WPApiDataSource api) async {

@@ -1,42 +1,33 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../repositories/stats_repository.dart';
+import '../../../core/errors/exceptions.dart';
 import '../../entities/stats_entity.dart';
-import '../base_usecase.dart';
+import '../../repositories/stats_repository.dart';
 
-class GetStatsUseCase extends UseCase<StatsEntity, String> {
-  final StatsRepository repository;
+class GetStatsUseCase {
+  final StatsRepository _repository;
 
-  GetStatsUseCase(this.repository);
+  GetStatsUseCase(this._repository);
 
-  @override
-  Future<UseCaseResult<StatsEntity>> execute(String siteId) async {
+  Future<StatsEntity> execute(String siteId) async {
     try {
       if (siteId.isEmpty) {
-        return UseCaseResult.error(
-          UseCaseException(
-            message: 'ID de site invalide',
-            code: 'INVALID_SITE_ID',
-          ),
+        throw UseCaseException(
+          message: 'ID de site invalide',
+          code: 'INVALID_SITE_ID',
         );
       }
 
-      final stats = await repository.getStats(siteId);
-      
-      return UseCaseResult.success(stats);
-    } on RepositoryException catch (e) {
-      return UseCaseResult.error(
-        UseCaseException(
-          message: e.message,
-          code: e.code,
-        ),
-      );
+      return await _repository.getStats(siteId);
+    } on RepositoryException {
+      rethrow;
     } catch (e) {
-      return UseCaseResult.error(
-        UseCaseException(
-          message: 'Erreur lors de la récupération des statistiques',
-          code: 'STATS_FETCH_ERROR',
-        ),
-      );
+      throw UseCaseException(message: e.toString());
     }
   }
 }
+
+final getStatsUseCaseProvider = Provider<GetStatsUseCase>((ref) {
+  final repository = ref.watch(statsRepositoryProvider);
+  return GetStatsUseCase(repository);
+});

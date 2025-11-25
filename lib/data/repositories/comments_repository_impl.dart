@@ -1,11 +1,11 @@
-import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/data/repositories/site_repository_impl.dart';
 
-import '../../core/errors/failures.dart';
-import '../../core/providers/repository_providers.dart';
-import '../../domain/repositories/comments_repository.dart';
+import '../../core/errors/exceptions.dart';
 import '../../domain/entities/comment_entity.dart';
+import '../../domain/repositories/comments_repository.dart';
 import '../datasources/remote/wp_api_datasource.dart';
+import '../../core/providers/repository_providers.dart';
 
 class CommentsRepositoryImpl implements CommentsRepository {
   final Ref ref;
@@ -13,103 +13,111 @@ class CommentsRepositoryImpl implements CommentsRepository {
   CommentsRepositoryImpl(this.ref);
 
   Future<WPApiDataSource> _getDataSource(String siteId) async {
-    final siteEither = await ref.read(siteRepositoryProvider).getSiteById(siteId);
-    if (siteEither.isRight) {
-      final site = siteEither.right;
+    final siteRepository = ref.read(siteRepositoryProvider);
+    final site = await siteRepository.getSiteById(siteId);
+    if (site != null) {
       return WPApiDataSource(
         baseUrl: site.url,
         apiKey: site.apiKey,
       );
     } else {
-      throw Exception('Site not found'); // Ou une gestion d'erreur plus spécifique
+      throw UseCaseException(message: 'Site not found with ID: $siteId', code: 'SITE_NOT_FOUND');
     }
   }
 
   @override
-  Future<Either<Failure, List<CommentEntity>>> getComments(String siteId, {int page = 1, int perPage = 10}) async {
+  Future<List<CommentEntity>> getComments(String siteId, {int page = 1, int perPage = 10}) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final comments = await dataSource.getComments(page: page, perPage: perPage);
-      return Right(comments);
+      return await dataSource.getComments(page: page, perPage: perPage);
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to fetch comments: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, CommentEntity>> getComment(String siteId, int commentId) async {
+  Future<CommentEntity?> getComment(String siteId, int commentId) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final comment = await dataSource.getComment(commentId);
-      return Right(comment);
+      return await dataSource.getComment(commentId);
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to fetch comment $commentId: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, bool>> deleteComment(String siteId, int commentId) async {
+  Future<void> deleteComment(String siteId, int commentId) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final result = await dataSource.deleteComment(commentId);
-      return Right(result);
+      await dataSource.deleteComment(commentId);
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to delete comment $commentId: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, CommentEntity>> updateComment(String siteId, CommentEntity comment) async {
+  Future<CommentEntity> updateComment(String siteId, CommentEntity comment) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final updatedComment = await dataSource.updateComment(comment);
-      return Right(updatedComment);
+      return await dataSource.updateComment(comment);
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to update comment ${comment.id}: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, bool>> approveComment(String siteId, int commentId) async {
+  Future<void> approveComment(String siteId, int commentId) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final result = await dataSource.approveComment(commentId);
-      return Right(result);
+      await dataSource.approveComment(commentId);
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to approve comment $commentId: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, List<CommentEntity>>> getPendingComments(String siteId) async {
+  Future<List<CommentEntity>> getPendingComments(String siteId) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final comments = await dataSource.getPendingComments();
-      return Right(comments);
+      return await dataSource.getPendingComments();
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to get pending comments: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, int>> getPendingCommentsCount(String siteId) async {
+  Future<int> getPendingCommentsCount(String siteId) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final count = await dataSource.getPendingCommentsCount();
-      return Right(count);
+      return await dataSource.getPendingCommentsCount();
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to get pending comments count: ${e.toString()}');
     }
   }
 
   @override
-  Future<Either<Failure, bool>> spamComment(String siteId, int commentId) async {
+  Future<void> spamComment(String siteId, int commentId) async {
     try {
       final dataSource = await _getDataSource(siteId);
-      final result = await dataSource.spamComment(commentId);
-      return Right(result);
+      await dataSource.spamComment(commentId);
+    } on UseCaseException {
+      rethrow;
     } catch (e) {
-      return Left(Failure.server());
+      throw UseCaseException(message: 'Failed to spam comment $commentId: ${e.toString()}');
     }
   }
 }

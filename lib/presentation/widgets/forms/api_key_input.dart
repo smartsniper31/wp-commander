@@ -5,14 +5,14 @@ import '../../../domain/services/validation_service.dart';
 import 'custom_text_field.dart';
 
 class ApiKeyInput extends ConsumerStatefulWidget {
-  final TextEditingController controller;
+  final String initialValue;
   final void Function(String)? onChanged;
   final String? error;
   final bool showStrength;
 
   const ApiKeyInput({
     super.key,
-    required this.controller,
+    this.initialValue = '',
     this.onChanged,
     this.error,
     this.showStrength = true,
@@ -23,19 +23,41 @@ class ApiKeyInput extends ConsumerStatefulWidget {
 }
 
 class _ApiKeyInputState extends ConsumerState<ApiKeyInput> {
+  late final TextEditingController _controller;
   bool _obscureText = true;
   ApiKeyStrength _strength = ApiKeyStrength.weak;
 
   @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(ApiKeyInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Column(
       children: [
         CustomTextField(
           label: 'Clé API',
           hint: 'Entrez votre clé API WordPress',
-          controller: widget.controller,
+          controller: _controller,
           onChanged: (value) {
             if (widget.showStrength) {
               setState(() {
@@ -57,7 +79,7 @@ class _ApiKeyInputState extends ConsumerState<ApiKeyInput> {
             },
           ),
         ),
-        if (widget.showStrength && widget.controller.text.isNotEmpty) ...[
+        if (widget.showStrength && _controller.text.isNotEmpty) ...[
           const SizedBox(height: 8),
           _buildStrengthIndicator(theme),
         ],

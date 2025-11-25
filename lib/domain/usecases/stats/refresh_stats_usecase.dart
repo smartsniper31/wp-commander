@@ -1,21 +1,25 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/exceptions.dart';
 import '../../repositories/stats_repository.dart';
-import '../base_usecase.dart';
 
-class RefreshStatsUseCase extends UseCase<void, String> {
-  final StatsRepository repository;
+class RefreshStatsUseCase {
+  final StatsRepository _repository;
 
-  RefreshStatsUseCase(this.repository);
+  RefreshStatsUseCase(this._repository);
 
-  @override
-  Future<UseCaseResult<void>> execute(String siteId) async {
+  Future<void> execute(String siteId) async {
     try {
-      await repository.refreshStats(siteId);
-      return UseCaseResult.success(null);
-    } on RepositoryException catch (e) {
-      return UseCaseResult.error(UseCaseException(message: e.message, code: e.code));
+      await _repository.refreshStats(siteId);
+    } on RepositoryException {
+      rethrow;
     } catch (e) {
-      return UseCaseResult.error(UseCaseException(message: e.toString(), code: 'UNKNOWN'));
+      throw UseCaseException(message: e.toString());
     }
   }
 }
+
+final refreshStatsUseCaseProvider = Provider<RefreshStatsUseCase>((ref) {
+  final repository = ref.watch(statsRepositoryProvider);
+  return RefreshStatsUseCase(repository);
+});

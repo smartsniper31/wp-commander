@@ -1,0 +1,40 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/core/errors/exceptions.dart';
+import 'package:wp_commander/data/repositories/site_repository_impl.dart';
+import '../../../presentation/core/providers/repository_providers.dart';
+
+import '../../repositories/site_repository.dart';
+
+class ValidateSiteUseCase {
+  final SiteRepository _repository;
+
+  ValidateSiteUseCase(this._repository);
+
+  Future<bool> execute(ValidateSiteParams params) async {
+    try {
+      return await _repository.validateApiKey(
+        url: params.url,
+        apiKey: params.apiKey,
+      );
+    } on RepositoryException {
+      rethrow;
+    } catch (e) {
+      throw UseCaseException(message: 'Erreur lors de la validation du site');
+    }
+  }
+}
+
+final validateSiteUseCaseProvider = Provider<ValidateSiteUseCase>((ref) {
+  final repository = ref.watch(siteRepositoryProvider);
+  return ValidateSiteUseCase(repository);
+});
+
+class ValidateSiteParams {
+  final String url;
+  final String apiKey;
+
+  const ValidateSiteParams({
+    required this.url,
+    required this.apiKey,
+  });
+}

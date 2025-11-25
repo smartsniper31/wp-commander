@@ -48,9 +48,6 @@ void main() async {
     const encryptionKey = 'wp_commander_secure_key_2024'; // À externaliser
     SecurityService.initialize(encryptionKey);
 
-    // Initialiser le cache
-    await CacheManager.init();
-
     // Create a ProviderContainer to access providers before runApp
     final container = ProviderContainer();
 

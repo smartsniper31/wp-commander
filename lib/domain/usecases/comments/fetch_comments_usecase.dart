@@ -1,26 +1,43 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../repositories/comments_repository.dart';
+import '../../../core/errors/exceptions.dart';
+import '../../../core/providers/repository_providers.dart';
 import '../../entities/comment_entity.dart';
-import '../base_usecase.dart';
+import '../../repositories/comments_repository.dart';
 
-class FetchCommentsUseCase extends UseCase<List<CommentEntity>, FetchCommentsParams> {
-  final CommentsRepository repository;
+class FetchCommentsUseCase {
+  final CommentsRepository _repository;
 
-  FetchCommentsUseCase(this.repository);
+  FetchCommentsUseCase(this._repository);
 
-  @override
-  Future<UseCaseResult<List<CommentEntity>>> execute(FetchCommentsParams params) async {
-    // TODO: Implémenter
-    throw UnimplementedError();
+  Future<List<CommentEntity>> execute(FetchCommentsParams params) async {
+    try {
+      if (params.status == 'pending') {
+        return await _repository.getPendingComments(params.siteId);
+      }
+      return await _repository.getComments(params.siteId, page: params.page, perPage: params.perPage);
+    } on UseCaseException {
+      rethrow;
+    } catch (e) {
+      throw UseCaseException(message: e.toString());
+    }
   }
 }
+
+final fetchCommentsUseCaseProvider = Provider<FetchCommentsUseCase>((ref) {
+  return FetchCommentsUseCase(ref.read(commentsRepositoryProvider));
+});
 
 class FetchCommentsParams {
   final String siteId;
   final String status;
+  final int page;
+  final int perPage;
 
   const FetchCommentsParams({
     required this.siteId,
     this.status = 'all',
+    this.page = 1,
+    this.perPage = 10,
   });
 }

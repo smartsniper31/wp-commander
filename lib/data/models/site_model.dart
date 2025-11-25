@@ -22,6 +22,16 @@ class SiteModel extends SiteEntity {
     );
   }
 
+  factory SiteModel.fromEntity(SiteEntity entity) {
+    return SiteModel(
+      id: entity.id,
+      name: entity.name,
+      url: entity.url,
+      apiKey: entity.apiKey,
+      createdAt: entity.createdAt,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

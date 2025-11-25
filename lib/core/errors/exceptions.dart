@@ -12,3 +12,10 @@ class RepositoryException implements Exception {
 
   RepositoryException({required this.message});
 }
+
+class UseCaseException implements Exception {
+  final String message;
+  final String? code;
+
+  UseCaseException({required this.message, this.code});
+}
