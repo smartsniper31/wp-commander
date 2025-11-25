@@ -1,4 +1,3 @@
-import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/site_entity.dart';
@@ -8,7 +7,6 @@ import '../../../../domain/usecases/sites/get_sites.dart';
 import '../../../../domain/usecases/sites/update_site.dart';
 import '../../../core/providers/usecase_providers.dart';
 import 'package:collection/collection.dart';
-import '../../../../core/errors/failures.dart';
 import '../../../../domain/repositories/site_repository.dart';
 import '../../../core/providers/repository_providers.dart';
 

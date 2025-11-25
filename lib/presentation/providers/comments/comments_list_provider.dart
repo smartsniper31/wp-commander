@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/comment_entity.dart';
+import '../../../../domain/usecases/comments/approve_comment.dart';
+import '../../../../domain/usecases/comments/delete_comment.dart';
+import '../../../../domain/usecases/comments/get_all_comments_usecase.dart';
+import '../../../core/providers/usecase_providers.dart';
 
 // État pour la liste des commentaires
 class CommentsListState {
@@ -42,7 +46,7 @@ class CommentsListState {
   int get pendingCount {
     return comments.where((comment) => comment.status == 'hold').length;
   }
-  
+
   List<CommentEntity> get filteredComments {
     if (filterStatus == 'all') return comments;
     return comments.where((comment) => comment.status == filterStatus).toList();
@@ -52,8 +56,19 @@ class CommentsListState {
 // Notifier pour la liste des commentaires
 class CommentsListNotifier extends StateNotifier<CommentsListState> {
   final String siteId;
+  final GetAllCommentsUseCase _getAllCommentsUseCase;
+  final ApproveCommentUseCase _approveCommentUseCase;
+  final DeleteCommentUseCase _deleteCommentUseCase;
 
-  CommentsListNotifier({required this.siteId}) : super(const CommentsListState());
+  CommentsListNotifier({
+    required this.siteId,
+    required GetAllCommentsUseCase getAllCommentsUseCase,
+    required ApproveCommentUseCase approveCommentUseCase,
+    required DeleteCommentUseCase deleteCommentUseCase,
+  })  : _getAllCommentsUseCase = getAllCommentsUseCase,
+        _approveCommentUseCase = approveCommentUseCase,
+        _deleteCommentUseCase = deleteCommentUseCase,
+        super(const CommentsListState());
 
   // Charger les commentaires
   Future<void> loadComments({bool loadMore = false}) async {
@@ -68,20 +83,21 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
     );
 
     try {
-      // TODO: Implémenter le chargement depuis le repository
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      final newComments = <CommentEntity>[]; // Remplacer par les vraies données
+      final newComments = await _getAllCommentsUseCase.execute(
+        siteId: siteId,
+        page: nextPage,
+        status: state.filterStatus,
+      );
       
       state = state.copyWith(
         comments: loadMore ? [...state.comments, ...newComments] : newComments,
         isLoading: false,
-        hasMore: newComments.isNotEmpty, // Simuler la pagination
+        hasMore: newComments.isNotEmpty,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Erreur lors du chargement des commentaires',
+        error: e.toString(),
       );
     }
   }
@@ -89,39 +105,45 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
   // Changer le filtre
   void setFilter(String status) {
     state = state.copyWith(filterStatus: status);
+    loadComments();
   }
 
   // Approuver un commentaire
   Future<void> approveComment(int commentId) async {
-    // TODO: Implémenter l'approbation via le repository
+    final originalComments = state.comments;
     final updatedComments = state.comments.map((comment) {
       if (comment.id == commentId) {
-        return CommentEntity(
-          id: comment.id,
-          authorName: comment.authorName,
-          authorEmail: comment.authorEmail,
-          authorAvatar: comment.authorAvatar,
-          content: comment.content,
-          date: comment.date,
-          status: 'approved',
-          postTitle: comment.postTitle,
-          postId: comment.postId,
-          authorIp: comment.authorIp,
-          authorUrl: comment.authorUrl,
-        );
+        return comment.copyWith(status: 'approved');
       }
       return comment;
     }).toList();
 
     state = state.copyWith(comments: updatedComments);
+
+    try {
+      await _approveCommentUseCase(siteId, commentId);
+    } catch (e) {
+      state = state.copyWith(
+        comments: originalComments, // Revert on error
+        error: e.toString(),
+      );
+    }
   }
 
   // Supprimer un commentaire
   Future<void> deleteComment(int commentId) async {
-    final updatedComments = state.comments.where((c) => c.id != commentId).toList();
+    final originalComments = state.comments;
+    final updatedComments = originalComments.where((c) => c.id != commentId).toList();
     state = state.copyWith(comments: updatedComments);
-    
-    // TODO: Implémenter la suppression dans le repository
+
+    try {
+      await _deleteCommentUseCase(siteId, commentId);
+    } catch (e) {
+      state = state.copyWith(
+        comments: originalComments, // Revert on error
+        error: e.toString(),
+      );
+    }
   }
 
   // Actualiser les commentaires
@@ -138,5 +160,10 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
 // Provider famille pour les commentaires par site
 final commentsListProvider = StateNotifierProvider.family<
   CommentsListNotifier, CommentsListState, String>((ref, siteId) {
-  return CommentsListNotifier(siteId: siteId);
+  return CommentsListNotifier(
+    siteId: siteId,
+    getAllCommentsUseCase: ref.watch(getAllCommentsUseCaseProvider),
+    approveCommentUseCase: ref.watch(approveCommentUseCaseProvider),
+    deleteCommentUseCase: ref.watch(deleteCommentUseCaseProvider),
+  );
 });

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/health_entity.dart';
@@ -45,6 +47,7 @@ class HealthMonitorState {
 class HealthMonitorNotifier extends StateNotifier<HealthMonitorState> {
   final CheckSiteHealthUseCase _checkSiteHealthUseCase;
   final String siteId;
+  Timer? _timer;
 
   HealthMonitorNotifier({
     required CheckSiteHealthUseCase checkSiteHealthUseCase,
@@ -56,6 +59,12 @@ class HealthMonitorNotifier extends StateNotifier<HealthMonitorState> {
             lastChecked: DateTime.now(),
           ),
         );
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   // Vérifier la santé du site
   Future<void> checkHealth() async {
@@ -83,13 +92,20 @@ class HealthMonitorNotifier extends StateNotifier<HealthMonitorState> {
   }
 
   // Démarrer le monitoring automatique
-  void startMonitoring() {
+  void startMonitoring({Duration interval = const Duration(minutes: 5)}) {
+    if (state.isMonitoring) return;
+
     state = state.copyWith(isMonitoring: true);
-    // TODO: Implémenter le monitoring périodique
+    _timer?.cancel();
+    _timer = Timer.periodic(interval, (timer) {
+      checkHealth();
+    });
+    checkHealth();
   }
 
   // Arrêter le monitoring
   void stopMonitoring() {
+    _timer?.cancel();
     state = state.copyWith(isMonitoring: false);
   }
 

@@ -1,4 +1,3 @@
-
 import '../../repositories/health_repository.dart';
 import '../../entities/health_entity.dart';
 import '../base_usecase.dart';
@@ -10,33 +9,22 @@ class CheckSiteHealthUseCase extends UseCase<HealthEntity, String> {
 
   @override
   Future<UseCaseResult<HealthEntity>> execute(String siteId) async {
-    try {
-      if (siteId.isEmpty) {
-        return UseCaseResult.error(
-          UseCaseException(
-            message: 'ID de site invalide',
-            code: 'INVALID_SITE_ID',
-          ),
-        );
-      }
-
-      final health = await repository.getSiteHealth(siteId);
-      
-      return UseCaseResult.success(health);
-    } on RepositoryException catch (e) {
+    if (siteId.isEmpty) {
       return UseCaseResult.error(
         UseCaseException(
-          message: e.message,
-          code: e.code,
-        ),
-      );
-    } catch (e) {
-      return UseCaseResult.error(
-        UseCaseException(
-          message: 'Erreur lors de la vérification de la santé du site',
-          code: 'HEALTH_CHECK_ERROR',
+          message: 'ID de site invalide',
+          code: 'INVALID_SITE_ID',
         ),
       );
     }
+
+    final result = await repository.getSiteHealth(siteId);
+
+    return result.fold(
+      (failure) => UseCaseResult.error(
+        UseCaseException(message: failure.message, code: 'HEALTH_CHECK_FAILURE'),
+      ),
+      (health) => UseCaseResult.success(health),
+    );
   }
 }

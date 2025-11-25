@@ -1,4 +1,5 @@
 import 'package:either_dart/either.dart';
+import 'package:wp_commander/data/datasources/site_remote_datasource.dart';
 
 import '../../core/errors/exceptions.dart';
 import '../../core/errors/failures.dart';
@@ -11,7 +12,7 @@ import '../models/site_model.dart';
 class SiteRepositoryImpl implements SiteRepository {
   final SiteLocalDataSource localDataSource;
 
-  SiteRepositoryImpl({required this.localDataSource});
+  SiteRepositoryImpl({required this.localDataSource, required SiteRemoteDataSource remoteDataSource});
 
   @override
   Future<Either<Failure, SiteEntity>> addSite(SiteEntity site) async {

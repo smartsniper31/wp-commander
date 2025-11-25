@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../domain/usecases/comments/approve_comment.dart';
+import '../../../domain/usecases/comments/delete_comment.dart';
+import '../../../domain/usecases/comments/get_comments.dart';
 import '../../../domain/usecases/site/add_site_usecase.dart';
 import '../../../domain/usecases/site/validate_site_usecase.dart';
 import '../../../domain/usecases/stats/get_stats_usecase.dart';
@@ -27,4 +30,20 @@ final getStatsUseCaseProvider = Provider<GetStatsUseCase>((ref) {
 final checkSiteHealthUseCaseProvider = Provider<CheckSiteHealthUseCase>((ref) {
   final repository = ref.watch(healthRepositoryProvider);
   return CheckSiteHealthUseCase(repository);
+});
+
+// Use Cases pour les Commentaires
+final getAllCommentsUseCaseProvider = Provider<GetCommentsUseCase>((ref) {
+  final repository = ref.watch(commentsRepositoryProvider);
+  return GetCommentsUseCase(repository);
+});
+
+final approveCommentUseCaseProvider = Provider<ApproveCommentUseCase>((ref) {
+  final repository = ref.watch(commentsRepositoryProvider);
+  return ApproveCommentUseCase(repository);
+});
+
+final deleteCommentUseCaseProvider = Provider<DeleteCommentUseCase>((ref) {
+  final repository = ref.watch(commentsRepositoryProvider);
+  return DeleteCommentUseCase(repository);
 });

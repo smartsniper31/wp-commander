@@ -24,7 +24,7 @@ class ApiKeyVO extends ValueObject<String> {
       return ApiKeyVO._(trimmedInput, error: 'Clé API trop longue');
     }
 
-    final apiKeyPattern = RegExp(r'^[a-zA-Z0-9_\\-!@#\$%^&*()+={}|:;"<>,.?/\\\[\\\]~]+\$');
+    final apiKeyPattern = RegExp(r'^[a-zA-Z0-9_\\-!@#\$%^&*()+={}|:;"<>,.?/\\\[\\\]~]+$');
     
     if (!apiKeyPattern.hasMatch(trimmedInput)) {
       return ApiKeyVO._(trimmedInput, error: 'Clé API contient des caractères invalides');

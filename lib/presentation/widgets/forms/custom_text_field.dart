@@ -86,7 +86,7 @@ class CustomTextField extends ConsumerWidget {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: theme.colorScheme.outline.withOpacity(0.5),
+                color: theme.colorScheme.outline.withAlpha(128),
               ),
             ),
             focusedBorder: OutlineInputBorder(

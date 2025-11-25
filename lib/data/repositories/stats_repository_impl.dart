@@ -9,7 +9,7 @@ import '../adapters/api_adapter.dart';
 import '../models/api/wp_stats_model.dart';
 import '../../domain/entities/site_entity.dart';
 import '../../core/errors/exceptions.dart';
-import '../../domain/repositories/site_repository.dart'; // Required for _getSiteById
+import '../../core/providers/repository_providers.dart';
 
 class StatsRepositoryImpl implements StatsRepository {
   final Ref ref;
@@ -18,7 +18,11 @@ class StatsRepositoryImpl implements StatsRepository {
 
   // Using a real implementation instead of a mock
   Future<SiteEntity> _getSiteById(String siteId) async {
-    return await ref.read(siteRepositoryProvider).getSiteById(siteId);
+    final result = await ref.read(siteRepositoryProvider).getSiteById(siteId);
+    return result.fold(
+      (failure) => throw failure,
+      (site) => site,
+    );
   }
 
   @override

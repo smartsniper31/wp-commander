@@ -34,6 +34,7 @@ class CacheManager {
     final age = DateTime.now().difference(timestamp);
 
     if (age > (maxAge ?? _defaultExpiry)) {
+      await prefs.remove(cacheKey); // Remove expired cache item
       return null;
     }
 
@@ -61,6 +62,29 @@ class CacheManager {
                 }
             }
         }
+    }
+  }
+
+  static Future<void> cleanExpiredCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    for (final key in keys) {
+      if (key.startsWith(_cachePrefix)) {
+        final itemString = prefs.getString(key);
+        if (itemString != null) {
+          try {
+            final cacheItem = json.decode(itemString);
+            final timestamp = DateTime.parse(cacheItem['timestamp']);
+            final age = DateTime.now().difference(timestamp);
+            if (age > _defaultExpiry) {
+              await prefs.remove(key);
+            }
+          } catch (e) {
+            // Can't parse, remove it
+            await prefs.remove(key);
+          }
+        }
+      }
     }
   }
 }

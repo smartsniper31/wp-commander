@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/core/errors/failures.dart';
+import 'package:wp_commander/core/providers/repository_providers.dart';
 import 'package:wp_commander/data/adapters/api_adapter.dart';
 import 'package:wp_commander/data/models/api/wp_health_model.dart';
 import 'package:wp_commander/domain/entities/health_issue_entity.dart';
-import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
 import '../../domain/repositories/health_repository.dart';
 import '../../domain/entities/health_entity.dart';
 import '../datasources/remote/wp_api_datasource.dart';
@@ -16,56 +18,81 @@ class HealthRepositoryImpl implements HealthRepository {
   HealthRepositoryImpl(this.ref);
 
   Future<WPApiDataSource> _getDataSource(String siteId) async {
-    final site = await ref.read(sitesNotifierProvider.notifier).getSiteById(siteId);
-    return WPApiDataSource(
-      baseUrl: site!.url,
-      apiKey: site.apiKey,
-    );
+    final siteEither = await ref.read(siteRepositoryProvider).getSiteById(siteId);
+    if (siteEither.isRight) {
+      final site = siteEither.right;
+      return WPApiDataSource(
+        baseUrl: site.url,
+        apiKey: site.apiKey,
+      );
+    } else {
+      throw Exception('Site not found');
+    }
   }
 
   @override
-  Future<HealthEntity> getSiteHealth(String siteId) async {
+  Future<Either<Failure, HealthEntity>> getSiteHealth(String siteId) async {
     final cacheKey = 'health_$siteId';
-    final cachedData = CacheManager.getValidData(cacheKey);
+    final cachedData = await CacheManager.getValidData(cacheKey);
 
-    final healthData = jsonDecode(cachedData);
-    return ApiAdapter.fromWpHealth(WPHealthModel.fromJson(healthData));
-  
-    final dataSource = await _getDataSource(siteId);
-    final healthData = await dataSource.getSiteHealth();
+    if (cachedData != null && cachedData.isNotEmpty) {
+      try {
+        final healthData = jsonDecode(cachedData);
+        return Right(ApiAdapter.fromWpHealth(WPHealthModel.fromJson(healthData)));
+      } catch (e) {
+        // Les données du cache sont invalides, nous allons les chercher sur le réseau
+      }
+    }
 
-    await CacheManager.save(
-      key: cacheKey,
-      data: jsonEncode(healthData.toJson()),
-      dataType: 'health',
-      siteId: siteId,
-    );
+    try {
+      final dataSource = await _getDataSource(siteId);
+      final healthData = await dataSource.getSiteHealth();
 
-    return ApiAdapter.fromWpHealth(healthData);
+      await CacheManager.save(
+        key: cacheKey,
+        data: jsonEncode(healthData.toJson()),
+        dataType: 'health',
+        siteId: siteId,
+      );
+      return Right(ApiAdapter.fromWpHealth(healthData));
+    } catch (e) {
+      return Left(Failure.server());
+    }
   }
 
   @override
-  Future<List<HealthIssue>> runHealthCheck(String siteId) async {
-    final dataSource = await _getDataSource(siteId);
-    final healthData = await dataSource.getSiteHealth();
-    return healthData.issues.map((issue) => HealthIssue.fromJson(issue)).toList();
+  Future<Either<Failure, List<HealthIssue>>> runHealthCheck(String siteId) async {
+    try {
+      final healthEither = await getSiteHealth(siteId);
+      return healthEither.map((health) => health.issues);
+    } catch (e) {
+      return Left(Failure.server());
+    }
   }
 
   @override
-  Future<Map<String, dynamic>> getPerformanceMetrics(String siteId) async {
-    final dataSource = await _getDataSource(siteId);
-    final healthData = await dataSource.getSiteHealth();
-    return {
-      'responseTime': healthData.responseTime,
-      'phpVersion': healthData.phpVersion,
-      'wordpressVersion': healthData.wordpressVersion,
-    };
+  Future<Either<Failure, Map<String, dynamic>>> getPerformanceMetrics(String siteId) async {
+    try {
+      final dataSource = await _getDataSource(siteId);
+      final healthData = await dataSource.getSiteHealth();
+      return Right({
+        'responseTime': healthData.responseTime,
+        'phpVersion': healthData.phpVersion,
+        'wordpressVersion': healthData.wordpressVersion,
+      });
+    } catch (e) {
+      return Left(Failure.server());
+    }
   }
 
   @override
-  Future<bool> monitorSiteUptime(String siteId) async {
-    final dataSource = await _getDataSource(siteId);
-    final healthData = await dataSource.getSiteHealth();
-    return healthData.isOnline;
+  Future<Either<Failure, bool>> monitorSiteUptime(String siteId) async {
+    try {
+      final dataSource = await _getDataSource(siteId);
+      final healthData = await dataSource.getSiteHealth();
+      return Right(healthData.isOnline);
+    } catch (e) {
+      return Left(Failure.server());
+    }
   }
 }

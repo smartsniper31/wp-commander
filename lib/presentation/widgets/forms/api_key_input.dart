@@ -84,6 +84,7 @@ class _ApiKeyInputState extends ConsumerState<ApiKeyInput> {
         Text(
           'Force: ',
           style: theme.textTheme.bodySmall?.copyWith(
+            // ignore: deprecated_member_use
             color: theme.colorScheme.onSurface.withOpacity(0.6),
           ),
         ),

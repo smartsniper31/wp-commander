@@ -6,7 +6,8 @@ import 'site_remote_datasource.dart';
 import 'stats_remote_datasource.dart';
 import 'health_remote_datasource.dart';
 import 'comments_remote_datasource.dart';
-import 'site_local_datasource.dart';
+import 'local/site_local_datasource.dart';
+import 'local/site_local_datasource_impl.dart';
 
 // Fournisseur pour le client HTTP
 final httpClientProvider = Provider<http.Client>((ref) => http.Client());
@@ -37,6 +38,5 @@ final commentsRemoteDataSourceProvider = Provider<CommentsRemoteDataSource>((ref
 
 // Fournisseur pour la source de données locale de sites
 final siteLocalDataSourceProvider = Provider<SiteLocalDataSource>((ref) {
-  final sharedPrefs = ref.watch(sharedPreferencesProvider);
-  return SiteLocalDataSourceImpl(sharedPreferences: sharedPrefs);
+  return SiteLocalDataSourceImpl();
 });
