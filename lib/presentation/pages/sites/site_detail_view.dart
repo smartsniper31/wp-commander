@@ -1,27 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/domain/entities/health_entity.dart';
+import 'package:wp_commander/presentation/providers/site/site_health_provider.dart';
 import '../../../domain/entities/site_entity.dart';
 import '../../widgets/animations/slide_in_animation.dart';
 import '../../widgets/animations/staggered_fade_in_animation.dart';
 import '../../widgets/cards/info_card.dart';
 import '../../widgets/cards/health_score_card.dart';
+import '../../widgets/common/error_retry_widget.dart';
+import '../../widgets/common/loading_indicator.dart';
 
-class SiteDetailView extends StatelessWidget {
+class SiteDetailView extends ConsumerWidget {
   final SiteEntity site;
 
   const SiteDetailView({super.key, required this.site});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final healthAsync = ref.watch(siteHealthProvider(site.id));
+
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        // Section de score de santé
-        SlideInAnimation(
-          child: HealthScoreCard(score: site.healthScore),
+        // Section de score de santé et infos dynamiques
+        healthAsync.when(
+          data: (health) => _buildHealthSection(context, health, site),
+          loading: () => const LoadingIndicator(message: 'Analyse de la santé du site...'),
+          error: (err, stack) => ErrorRetryWidget(
+            message: 'Impossible de charger les informations du site.',
+            onRetry: () => ref.refresh(siteHealthProvider(site.id)),
+          ),
         ),
         const SizedBox(height: 16),
         
-        // Section d'informations
+        // Section Actions rapides
+        const SizedBox(height: 24),
+        Text(
+          'Actions rapides',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        _buildQuickActions(context),
+      ],
+    );
+  }
+
+  Widget _buildHealthSection(BuildContext context, HealthEntity health, SiteEntity site) {
+    return Column(
+      children: [
+        SlideInAnimation(
+          child: HealthScoreCard(score: health.healthScore.round()),
+        ),
+        const SizedBox(height: 16),
         StaggeredFadeInAnimation(
           delayBetween: const Duration(milliseconds: 100),
           children: [
@@ -33,12 +63,12 @@ class SiteDetailView extends StatelessWidget {
             ),
             InfoCard(
               title: 'Version de WordPress',
-              value: site.wordpressVersion ?? 'N/A',
+              value: health.wordpressVersion,
               icon: Icons.wordpress,
             ),
             InfoCard(
               title: 'Version PHP',
-              value: site.phpVersion ?? 'N/A',
+              value: health.phpVersion,
               icon: Icons.code,
             ),
             InfoCard(
@@ -47,16 +77,7 @@ class SiteDetailView extends StatelessWidget {
               icon: Icons.sync,
             ),
           ],
-        ),
-        
-        // Section Actions rapides
-        const SizedBox(height: 24),
-        Text(
-          'Actions rapides',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 16),
-        _buildQuickActions(context),
+        )
       ],
     );
   }

@@ -23,7 +23,6 @@ class SyncService {
     
     try {
       // Synchroniser dans l'ordre
-      await siteRepository.syncSiteData(await siteRepository.getSiteById(siteId));
       await statsRepository.refreshStats(siteId);
       await healthRepository.getSiteHealth(siteId);
       await commentsRepository.getComments(siteId);
@@ -34,7 +33,7 @@ class SyncService {
         success: true,
         siteId: siteId,
         duration: stopwatch.elapsed,
-        syncedItems: ['site_info', 'stats', 'health', 'comments'],
+        syncedItems: ['stats', 'health', 'comments'],
         timestamp: DateTime.now(),
       );
     } catch (e) {
@@ -52,26 +51,39 @@ class SyncService {
 
   // Synchronisation de tous les sites
   Future<BatchSyncResult> syncAllSites() async {
-    final sites = await siteRepository.getSites();
-    final results = <SyncResult>[];
+    final sitesEither = await siteRepository.getSites();
     
-    for (final site in sites) {
-      final result = await syncSite(site.id);
-      results.add(result);
-      
-      // Petit délai entre chaque synchronisation
-      await Future.delayed(const Duration(seconds: 1));
-    }
+    return sitesEither.fold(
+      (failure) {
+        return BatchSyncResult(
+          total: 0,
+          successful: 0,
+          failed: 0,
+          results: [],
+          timestamp: DateTime.now(),
+        );
+      },
+      (sites) async {
+        final results = <SyncResult>[];
+        for (final site in sites) {
+          final result = await syncSite(site.id);
+          results.add(result);
+          
+          // Petit délai entre chaque synchronisation
+          await Future.delayed(const Duration(seconds: 1));
+        }
 
-    final successful = results.where((r) => r.success).length;
-    final failed = results.length - successful;
+        final successful = results.where((r) => r.success).length;
+        final failed = results.length - successful;
 
-    return BatchSyncResult(
-      total: results.length,
-      successful: successful,
-      failed: failed,
-      results: results,
-      timestamp: DateTime.now(),
+        return BatchSyncResult(
+          total: results.length,
+          successful: successful,
+          failed: failed,
+          results: results,
+          timestamp: DateTime.now(),
+        );
+      },
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../domain/entities/site_entity.dart';
+import 'package:wp_commander/domain/entities/site_entity.dart';
+
 import '../../widgets/cards/site_card.dart';
 
 class DashboardView extends StatelessWidget {
@@ -13,10 +14,7 @@ class DashboardView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       itemCount: sites.length,
       itemBuilder: (context, index) {
-        return SiteCard(
-          site: sites[index],
-          index: index,
-        );
+        return SiteCard(site: sites[index], index: index);
       },
     );
   }

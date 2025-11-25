@@ -22,7 +22,7 @@ class StatsRepositoryImpl implements StatsRepository {
   }
 
   @override
-  Future<StatsEntity> getDashboardStats(String siteId) async {
+  Future<StatsEntity> getStats(String siteId) async {
     try {
       final site = await _getSiteById(siteId);
 
@@ -73,7 +73,7 @@ class StatsRepositoryImpl implements StatsRepository {
 
   @override
   Future<void> refreshStats(String siteId) async {
-    await getDashboardStats(siteId);
+    await getStats(siteId);
   }
 
   @override

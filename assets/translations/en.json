@@ -1,3 +1,4 @@
+
 {
   "app": {
     "title": "WP Commander",
@@ -14,7 +15,8 @@
     "error": "Error",
     "success": "Success",
     "retry": "Retry",
-    "search": "Search"
+    "search": "Search",
+    "never": "Never"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -39,6 +41,30 @@
     "apiKey": "API Key",
     "testConnection": "Test Connection",
     "connectionSuccess": "Connection successful",
-    "connectionFailed": "Connection failed"
+    "connectionFailed": "Connection failed",
+    "connected": "Connected",
+    "connectionError": "Error",
+    "posts": "Posts",
+    "comments": "Comments",
+    "health": "Health",
+    "lastSync": "Last Sync",
+    "syncNow": "Sync",
+    "details": "Details",
+    "justNow": "Just now"
+  },
+  "dashboard": {
+    "totalSites": "Total Sites",
+    "activePlugins": "Active Plugins",
+    "updatesAvailable": "Updates Available",
+    "comments": "Comments",
+    "healthScore": "Health Score",
+    "phpVersion": "PHP Version",
+    "databaseVersion": "Database Version",
+    "wordpressVersion": "WordPress Version",
+    "lastSync": "Last Sync: {time}",
+    "emptyMessage": "No sites configured",
+    "emptyDetails": "Start by adding your first WordPress site to monitor its stats and health.",
+    "loadingSites": "Loading sites...",
+    "loadingError": "Error loading sites"
   }
 }

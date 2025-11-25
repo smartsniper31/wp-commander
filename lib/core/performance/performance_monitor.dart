@@ -32,16 +32,16 @@ class PerformanceMonitor {
   }
 
   static void _logPerformance(PerformanceMetric metric) {
-    debugPrint(\'\'\'
-🚀 PERFORMANCE: \${metric.id}
-⏱️  Duration: \${metric.duration!.inMilliseconds}ms
-💾 Memory: \${metric.memoryUsed} bytes
-📊 Timestamp: \${metric.endTime}
-\'\'\');
+    debugPrint(
+      'Performance: \${metric.id}\\n'
+      '  Duration: \${metric.duration!.inMilliseconds}ms\\n'
+      '  Memory: \${metric.memoryUsed} bytes\\n'
+      '  Timestamp: \${metric.endTime}',
+    );
   }
 
   static int _getCurrentMemoryUsage() {
-    // En production, utiliser un package de monitoring mémoire
+    // In production, use a memory monitoring package
     return 0;
   }
 

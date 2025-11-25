@@ -22,6 +22,8 @@ class SiteEntity {
     this.adminEmail,
   });
 
+  String get cleanUrl => url.replaceAll(RegExp(r'^https?://'), '');
+
   SiteEntity copyWith({
     String? id,
     String? name,

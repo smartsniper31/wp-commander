@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/domain/entities/site_entity.dart';
 
-import '../../../domain/services/validation_service.dart';
 import '../../providers/ui/app_ui_provider.dart';
 import '../../providers/site/site_list_provider.dart';
 import '../../widgets/animations/fade_in_animation.dart';
 import '../../widgets/common/animated_card.dart';
 import '../../widgets/forms/custom_text_field.dart';
 import '../../widgets/forms/api_key_input.dart';
+import '../../widgets/animations/staggered_fade_in_animation.dart';
 
 class AddSitePage extends ConsumerStatefulWidget {
   const AddSitePage({super.key});
@@ -55,13 +56,13 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
                 child: ListView(
                   children: [
                     _buildAnimatedForm(),
-                    
+
                     // Message d'erreur
                     if (_validationError != null) ...[
                       const SizedBox(height: 16),
                       _buildErrorDisplay(),
                     ],
-                    
+
                     // Informations
                     const SizedBox(height: 24),
                     FadeInAnimation(
@@ -70,7 +71,7 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
                   ],
                 ),
               ),
-              
+
               // Bouton d'action
               SizedBox(
                 width: double.infinity,
@@ -86,7 +87,7 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
       ),
     );
   }
-  
+
   Widget _buildAnimatedForm() {
     return StaggeredFadeInAnimation(
       delayBetween: const Duration(milliseconds: 100),
@@ -160,8 +161,8 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
                 Text(
                   'Informations requises',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -180,19 +181,16 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
   }
 
   Future<void> _addSite() async {
+    if (ref.read(appUIProvider).isLoading) return;
     final uiNotifier = ref.read(appUIProvider.notifier);
-    if (uiNotifier.state.isLoading) return;
 
-    // Validation
-    final validation = ValidationService.validateSite(
-      name: _nameController.text.trim(),
-      url: _urlController.text.trim(),
-      apiKey: _apiKeyController.text.trim(),
-    );
+    final name = _nameController.text.trim();
+    final url = _urlController.text.trim();
+    final apiKey = _apiKeyController.text.trim();
 
-    if (!validation.isValid) {
+    if (name.isEmpty || url.isEmpty || apiKey.isEmpty) {
       setState(() {
-        _validationError = validation.firstError;
+        _validationError = 'Veuillez remplir tous les champs.';
       });
       return;
     }
@@ -200,15 +198,33 @@ class _AddSitePageState extends ConsumerState<AddSitePage> {
     setState(() {
       _validationError = null;
     });
+
+    uiNotifier.showLoading('Vérification de la clé API...');
+
+    final isValid = await ref
+        .read(siteListProvider.notifier)
+        .validateApiKey(url: url, apiKey: apiKey);
+
+    if (!isValid) {
+      uiNotifier.hideLoading();
+      setState(() {
+        _validationError = 'La clé API ou l\'URL est invalide.';
+      });
+      return;
+    }
+
     uiNotifier.showLoading('Ajout du site en cours...');
 
-    try {
-      await ref.read(siteListProvider.notifier).addSite(
-        name: _nameController.text.trim(),
-        url: _urlController.text.trim(),
-        apiKey: _apiKeyController.text.trim(),
-      );
+    final site = SiteEntity(
+      id: DateTime.now().toIso8601String(),
+      name: name,
+      url: url,
+      apiKey: apiKey,
+      createdAt: DateTime.now(),
+    );
 
+    try {
+      await ref.read(siteListProvider.notifier).addSite(site);
       uiNotifier.hideLoading();
       if (mounted) {
         // context.pop();

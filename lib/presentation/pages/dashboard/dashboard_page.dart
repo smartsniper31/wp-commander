@@ -1,98 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:wp_commander/core/localization/app_localizations.dart';
+import 'package:wp_commander/presentation/widgets/animations/fade_in_animation.dart';
 
-import '../../providers/site/site_list_provider.dart';
-import '../../widgets/common/loading_indicator.dart';
-import '../../widgets/common/empty_state_widget.dart';
-import '../../widgets/common/error_retry_widget.dart';
-import '../../widgets/animations/fade_in_animation.dart';
-import 'dashboard_view.dart';
+import '../../notifiers/sites_notifier.dart';
 
-class DashboardPage extends ConsumerStatefulWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  ConsumerState<DashboardPage> createState() => _DashboardPageState();
-}
-
-class _DashboardPageState extends ConsumerState<DashboardPage> {
-  @override
-  void initState() {
-    super.initState();
-    // Charger les sites au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(siteListProvider.notifier).loadSites();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final siteState = ref.watch(siteListProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final siteAsync = ref.watch(sitesNotifierProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tableau de bord'),
+        title: Text(l10n.translate('dashboard.title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Naviguer vers les paramètres
+              context.go('/settings');
             },
           ),
         ],
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
-        child: _buildBody(siteState),
-      ),
-      floatingActionButton: siteState.hasSites 
-          ? FloatingActionButton(
-              onPressed: _navigateToAddSite,
-              child: const Icon(Icons.add),
-            )
-          : null,
-    );
-  }
-
-  Widget _buildBody(SiteListState siteState) {
-    if (siteState.isLoading && !siteState.hasLoaded) {
-      return const LoadingIndicator(message: 'Chargement des sites...');
-    }
-
-    if (siteState.hasError) {
-      return ErrorRetryWidget(
-        key: const ValueKey('error'),
-        message: 'Erreur de chargement',
-        details: siteState.error,
-        onRetry: () => ref.read(siteListProvider.notifier).loadSites(),
-      );
-    }
-
-    if (siteState.isEmpty) {
-      return FadeInAnimation(
-        key: const ValueKey('empty'),
-        child: EmptyStateWidget(
-          title: 'Aucun site configuré',
-          description: 'Commencez par ajouter votre premier site WordPress pour suivre ses statistiques et sa santé.',
-          icon: Icons.dashboard,
-          actions: [
-            EmptyStateAction(
-              label: 'Ajouter un site',
-              onPressed: _navigateToAddSite,
-              isPrimary: true,
-            ),
-          ],
+      body: siteAsync.when(
+        data: (sites) => sites.isEmpty
+            ? FadeInAnimation(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.cloud_off, size: 80),
+                        const SizedBox(height: 20),
+                        Text(
+                          l10n.translate('dashboard.empty.title'),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          l10n.translate('dashboard.empty.subtitle'),
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(sitesNotifierProvider);
+                },
+                child: ListView.builder(
+                  itemCount: sites.length,
+                  itemBuilder: (context, index) {
+                    final site = sites[index];
+                    return ListTile(
+                      title: Text(site.name),
+                      subtitle: Text(site.url),
+                      onTap: () {
+                        context.go('/sites/${site.id}');
+                      },
+                    );
+                  },
+                ),
+              ),
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
         ),
-      );
-    }
-
-    return DashboardView(
-      key: const ValueKey('data'),
-      sites: siteState.sites,
+        error: (error, stackTrace) => Center(
+          child: Text(l10n.translate('dashboard.loading_error')),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go('/add-site');
+        },
+        child: const Icon(Icons.add),
+      ),
     );
-  }
-
-  void _navigateToAddSite() {
-    // context.push(AppRoutes.addSite);
   }
 }

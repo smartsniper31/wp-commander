@@ -10,7 +10,10 @@ class ValidateSiteUseCase extends UseCase<bool, ValidateSiteParams> {
   @override
   Future<UseCaseResult<bool>> execute(ValidateSiteParams params) async {
     try {
-      final isValid = await repository.validateApiKey(params.url, params.apiKey);
+      final isValid = await repository.validateApiKey(
+        url: params.url,
+        apiKey: params.apiKey,
+      );
       
       return UseCaseResult.success(isValid);
     } on RepositoryException catch (e) {

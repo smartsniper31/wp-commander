@@ -9,7 +9,13 @@ class RefreshStatsUseCase extends UseCase<void, String> {
 
   @override
   Future<UseCaseResult<void>> execute(String siteId) async {
-    // TODO: Implémenter
-    throw UnimplementedError();
+    try {
+      await repository.refreshStats(siteId);
+      return UseCaseResult.success(null);
+    } on RepositoryException catch (e) {
+      return UseCaseResult.error(UseCaseException(message: e.message, code: e.code));
+    } catch (e) {
+      return UseCaseResult.error(UseCaseException(message: e.toString(), code: 'UNKNOWN'));
+    }
   }
 }

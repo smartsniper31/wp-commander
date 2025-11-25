@@ -39,6 +39,7 @@ dependencies:
   dartz: ^0.10.1
   either_dart: ^1.0.0
   cached_network_image: ^3.4.1
+  flutter_local_notifications: ^19.5.0
 
 dev_dependencies:
   flutter_test:

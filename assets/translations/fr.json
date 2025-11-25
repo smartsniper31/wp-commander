@@ -14,7 +14,8 @@
     "error": "Erreur",
     "success": "Succès",
     "retry": "Réessayer",
-    "search": "Rechercher"
+    "search": "Rechercher",
+    "never": "Jamais"
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -39,6 +40,30 @@
     "apiKey": "Clé API",
     "testConnection": "Tester la connexion",
     "connectionSuccess": "Connexion réussie",
-    "connectionFailed": "Échec de la connexion"
+    "connectionFailed": "Échec de la connexion",
+    "connected": "Connecté",
+    "connectionError": "Erreur",
+    "posts": "Articles",
+    "comments": "Commentaires",
+    "health": "Santé",
+    "lastSync": "Dernière synchro",
+    "syncNow": "Synchroniser",
+    "details": "Détails",
+    "justNow": "À l'instant"
+  },
+  "dashboard": {
+    "totalSites": "Sites au total",
+    "activePlugins": "Plugins actifs",
+    "updatesAvailable": "Mises à jour disponibles",
+    "comments": "Commentaires",
+    "healthScore": "Score de santé",
+    "phpVersion": "Version de PHP",
+    "databaseVersion": "Version de la base de données",
+    "wordpressVersion": "Version de WordPress",
+    "lastSync": "Dernière synchronisation : {time}",
+    "emptyMessage": "Aucun site configuré",
+    "emptyDetails": "Commencez par ajouter votre premier site WordPress pour suivre ses statistiques et sa santé.",
+    "loadingSites": "Chargement des sites...",
+    "loadingError": "Erreur de chargement des sites"
   }
 }

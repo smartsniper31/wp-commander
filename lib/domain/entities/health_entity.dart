@@ -23,6 +23,13 @@ class HealthEntity extends Equatable {
     required this.issues,
   });
 
+  double get healthScore {
+    if (critical == 0) return 100.0;
+    final totalIssues = good + recommended + critical;
+    if (totalIssues == 0) return 100.0;
+    return (1.0 - (critical / totalIssues)) * 100.0;
+  }
+
   @override
   List<Object?> get props => [
         phpVersion,

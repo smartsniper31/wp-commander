@@ -1,5 +1,7 @@
+import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/failures.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../repositories/site_repository.dart';
 
@@ -8,8 +10,8 @@ class DeleteSiteUseCase {
 
   DeleteSiteUseCase(this._repository);
 
-  Future<void> call(String id) async {
-    await _repository.deleteSite(id);
+  Future<Either<Failure, void>> call(String id) async {
+    return await _repository.deleteSite(id);
   }
 }
 

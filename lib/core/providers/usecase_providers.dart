@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/usecases/site/add_site_usecase.dart';
 import '../../../domain/usecases/site/validate_site_usecase.dart';
-import '../../../domain/usecases/stats/get_dashboard_stats_usecase.dart';
+import '../../../domain/usecases/stats/get_stats_usecase.dart';
 import '../../../domain/usecases/health/check_site_health_usecase.dart';
 import './repository_providers.dart';
 
@@ -18,9 +18,9 @@ final validateSiteUseCaseProvider = Provider<ValidateSiteUseCase>((ref) {
 });
 
 // Use Cases pour les Statistiques
-final getDashboardStatsUseCaseProvider = Provider<GetDashboardStatsUseCase>((ref) {
+final getStatsUseCaseProvider = Provider<GetStatsUseCase>((ref) {
   final repository = ref.watch(statsRepositoryProvider);
-  return GetDashboardStatsUseCase(repository);
+  return GetStatsUseCase(repository);
 });
 
 // Use Cases pour la Santé

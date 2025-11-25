@@ -1,3 +1,4 @@
+import 'package:wp_commander/core/errors/failures.dart';
 
 import '../../repositories/site_repository.dart';
 import '../../entities/site_entity.dart';
@@ -31,9 +32,31 @@ class AddSiteUseCase extends UseCase<SiteEntity, AddSiteParams> {
       );
 
       // Ajouter le site via le repository
-      final addedSite = await repository.addSite(site);
-      
-      return UseCaseResult.success(addedSite);
+      final addedSiteResult = await repository.addSite(site);
+
+      return addedSiteResult.fold(
+        (failure) {
+          String message;
+          String code;
+          if (failure is ServerFailure) {
+            message = 'Une erreur est survenue sur le serveur.';
+            code = 'SERVER_FAILURE';
+          } else if (failure is CacheFailure) {
+            message = 'Une erreur de cache est survenue.';
+            code = 'CACHE_FAILURE';
+          } else {
+            message = 'Une erreur inconnue est survenue.';
+            code = 'UNKNOWN_FAILURE';
+          }
+          return UseCaseResult.error(
+            UseCaseException(
+              message: message,
+              code: code,
+            ),
+          );
+        },
+        (addedSite) => UseCaseResult.success(addedSite),
+      );
     } on RepositoryException catch (e) {
       return UseCaseResult.error(
         UseCaseException(
@@ -44,7 +67,7 @@ class AddSiteUseCase extends UseCase<SiteEntity, AddSiteParams> {
     } catch (e) {
       return UseCaseResult.error(
         UseCaseException(
-          message: 'Erreur inattendue lors de l\'ajout du site',
+          message: e.toString(),
           code: 'UNKNOWN_ERROR',
         ),
       );
@@ -57,7 +80,7 @@ class AddSiteParams {
   final String url;
   final String apiKey;
 
-  const AddSiteParams({
+  AddSiteParams({
     required this.name,
     required this.url,
     required this.apiKey,

@@ -36,4 +36,13 @@ class WPApiDataSource {
       throw ServerException(message: 'Failed to load dashboard stats', code: response.statusCode.toString());
     }
   }
+
+  Future<bool> validateConnection() async {
+    final response = await client.get(
+      Uri.parse('$baseUrl/wp-json/wp/v2/posts'),
+      headers: _getHeaders(),
+    );
+
+    return response.statusCode == 200;
+  }
 }

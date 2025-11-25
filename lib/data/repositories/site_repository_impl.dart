@@ -5,7 +5,8 @@ import '../../core/errors/failures.dart';
 import '../../domain/entities/site_entity.dart';
 import '../../domain/repositories/site_repository.dart';
 import '../datasources/local/site_local_datasource.dart';
-import '../datasources/remote/wp_api_datasource.dart'; // Correction de l'import
+import '../datasources/remote/wp_api_datasource.dart';
+import '../models/site_model.dart';
 
 class SiteRepositoryImpl implements SiteRepository {
   final SiteLocalDataSource localDataSource;
@@ -19,14 +20,19 @@ class SiteRepositoryImpl implements SiteRepository {
       final isValid = await remoteDataSource.validateConnection();
 
       if (isValid) {
-        final newSite = await localDataSource.cacheSite(site);
+        final newSite = await localDataSource.addSite(SiteModel(
+          id: site.id,
+          name: site.name,
+          url: site.url,
+          apiKey: site.apiKey,
+          createdAt: site.createdAt,
+        ));
         return Right(newSite);
       } else {
-        return Left(Failure.server(
-            message: 'Invalid credentials or unable to connect.'));
+        return Left(Failure.server());
       }
-    } on ServerException catch (e) {
-      return Left(Failure.server(message: e.message));
+    } on ServerException catch (_) {
+      return Left(Failure.server());
     } on CacheException {
       return Left(Failure.cache());
     }
@@ -55,8 +61,11 @@ class SiteRepositoryImpl implements SiteRepository {
   @override
   Future<Either<Failure, SiteEntity>> getSiteById(String id) async {
     try {
-      final site = await localDataSource.getSite(id);
-      return Right(site);
+      final site = await localDataSource.getSiteById(id);
+      if (site != null) {
+        return Right(site);
+      }
+      return Left(Failure.cache());
     } on CacheException {
       return Left(Failure.cache());
     }
@@ -65,7 +74,13 @@ class SiteRepositoryImpl implements SiteRepository {
   @override
   Future<Either<Failure, void>> updateSite(SiteEntity site) async {
     try {
-      await localDataSource.updateSite(site);
+      await localDataSource.updateSite(SiteModel(
+        id: site.id,
+        name: site.name,
+        url: site.url,
+        apiKey: site.apiKey,
+        createdAt: site.createdAt,
+      ));
       return const Right(null);
     } on CacheException {
       return Left(Failure.cache());

@@ -12,10 +12,8 @@ import '../../domain/repositories/stats_repository.dart';
 
 // Providers pour les repositories
 final siteRepositoryProvider = Provider<SiteRepository>((ref) {
-  final remoteDataSource = ref.watch(siteRemoteDataSourceProvider);
   final localDataSource = ref.watch(siteLocalDataSourceProvider);
   return SiteRepositoryImpl(
-    remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
   );
 });

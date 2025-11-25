@@ -1,4 +1,5 @@
 import '../../domain/entities/health_entity.dart';
+import '../../domain/entities/health_issue_entity.dart';
 import '../../domain/entities/stats_entity.dart';
 import '../models/api/wp_health_model.dart';
 import '../models/api/wp_stats_model.dart';
@@ -17,11 +18,27 @@ class ApiAdapter {
   }
 
   static HealthEntity fromWpHealth(WPHealthModel model) {
+    final issues = model.issues.map((issue) => HealthIssue(
+      test: issue['test'] ?? '',
+      label: issue['label'] ?? '',
+      status: issue['status'] ?? '',
+      badge: issue['badge']['label'] ?? '',
+      description: issue['description'] ?? '',
+    )).toList();
+
+    final good = issues.where((i) => i.status == 'good').length;
+    final recommended = issues.where((i) => i.status == 'recommended').length;
+    final critical = issues.where((i) => i.status == 'critical').length;
+
     return HealthEntity(
-      good: model.good,
-      recommended: model.recommended,
-      critical: model.critical,
-      lastUpdated: DateTime.now(),
+      phpVersion: model.phpVersion,
+      mysqlVersion: model.mysqlVersion,
+      wordpressVersion: model.wordpressVersion,
+      status: model.status,
+      good: good,
+      recommended: recommended,
+      critical: critical,
+      issues: issues,
     );
   }
 }

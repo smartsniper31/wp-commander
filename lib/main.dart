@@ -31,13 +31,13 @@ void main() async {
 
     // Setup logging
     setupLogging();
-    
+
     // Initialiser Hive
     await Hive.initFlutter();
-    
+
     // Enregistrer les adapters Hive
     Hive.registerAdapter(CachedDataModelAdapter());
-    
+
     await AppPreferences.init();
     await AppPreferences.incrementLaunchCount();
     if (AppPreferences.firstLaunchDate == null) {
@@ -47,22 +47,26 @@ void main() async {
     // Initialiser la sécurité
     const encryptionKey = 'wp_commander_secure_key_2024'; // À externaliser
     SecurityService.initialize(encryptionKey);
-    
+
     // Initialiser le cache
     await CacheManager.init();
-  
+
+    // Create a ProviderContainer to access providers before runApp
+    final container = ProviderContainer();
+
     // Initialiser les notifications
-    await NotificationService.initialize();
-  
+    await container.read(notificationServiceProvider).init();
+
     // Nettoyer le cache expiré au démarrage
     await CacheManager.cleanExpiredCache();
-  
+
     // Initialiser le monitoring de performance
     PerformanceMonitor.clearMetrics();
-    
+
     runApp(
-      const ProviderScope(
-        child: MyApp(),
+      UncontrolledProviderScope(
+        container: container,
+        child: const MyApp(),
       ),
     );
   } catch (e, s) {
@@ -78,7 +82,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(goRouterProvider);
     final locale = ref.watch(localeNotifierProvider);
     final themeMode = ref.watch(themeNotifierProvider);
-    
+
     return MaterialApp.router(
       title: 'WP Commander',
       theme: AppTheme.lightTheme(),

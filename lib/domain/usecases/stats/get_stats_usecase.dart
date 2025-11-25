@@ -3,10 +3,10 @@ import '../../repositories/stats_repository.dart';
 import '../../entities/stats_entity.dart';
 import '../base_usecase.dart';
 
-class GetDashboardStatsUseCase extends UseCase<StatsEntity, String> {
+class GetStatsUseCase extends UseCase<StatsEntity, String> {
   final StatsRepository repository;
 
-  GetDashboardStatsUseCase(this.repository);
+  GetStatsUseCase(this.repository);
 
   @override
   Future<UseCaseResult<StatsEntity>> execute(String siteId) async {
@@ -20,7 +20,7 @@ class GetDashboardStatsUseCase extends UseCase<StatsEntity, String> {
         );
       }
 
-      final stats = await repository.getDashboardStats(siteId);
+      final stats = await repository.getStats(siteId);
       
       return UseCaseResult.success(stats);
     } on RepositoryException catch (e) {

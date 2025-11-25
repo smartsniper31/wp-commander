@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/core/localization/app_localizations.dart';
 
 import '../../../domain/entities/site_entity.dart';
 import '../common/animated_card.dart';
@@ -13,6 +14,7 @@ class SiteCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return AnimatedCard(
       index: index,
@@ -43,7 +45,7 @@ class SiteCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          site.url, // Correction: cleanUrl -> url
+                          site.url,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
                           ),
@@ -51,17 +53,17 @@ class SiteCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  _buildConnectionStatus(),
+                  _buildConnectionStatus(l10n),
                 ],
               ),
               const SizedBox(height: 12),
 
               // Statistiques rapides
-              _buildQuickStats(),
+              _buildQuickStats(l10n),
 
               // Actions rapides
               const SizedBox(height: 12),
-              _buildQuickActions(context, ref),
+              _buildQuickActions(context, ref, l10n),
             ],
           ),
         ),
@@ -85,7 +87,7 @@ class SiteCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildConnectionStatus() {
+  Widget _buildConnectionStatus(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -102,7 +104,7 @@ class SiteCard extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            site.isConnected ? 'Connecté' : 'Erreur',
+            site.isConnected ? l10n.translate('sites.connected') : l10n.translate('sites.connectionError'),
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
@@ -114,17 +116,16 @@ class SiteCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickStats() {
-    // This should be updated with real data from StatsEntity
+  Widget _buildQuickStats(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildStatItem(Icons.article, 'Articles', '-'),
-        _buildStatItem(Icons.comment, 'Commentaires', '-'),
-        _buildStatItem(Icons.health_and_safety, 'Santé', '-'),
-        _buildStatItem(Icons.update, 'Dernière synchro', site.lastSync != null
-            ? _formatLastSync(site.lastSync!)
-            : 'Jamais'),
+        _buildStatItem(Icons.article, l10n.translate('sites.posts'), '-'),
+        _buildStatItem(Icons.comment, l10n.translate('sites.comments'), '-'),
+        _buildStatItem(Icons.health_and_safety, l10n.translate('sites.health'), '-'),
+        _buildStatItem(Icons.update, l10n.translate('sites.lastSync'), site.lastSync != null
+            ? _formatLastSync(site.lastSync!, l10n)
+            : l10n.translate('common.never')),
       ],
     );
   }
@@ -152,14 +153,14 @@ class SiteCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, WidgetRef ref) {
+  Widget _buildQuickActions(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => _syncSite(ref),
             icon: const Icon(Icons.sync, size: 16),
-            label: const Text('Synchroniser'),
+            label: Text(l10n.translate('sites.syncNow')),
           ),
         ),
         const SizedBox(width: 8),
@@ -167,18 +168,18 @@ class SiteCard extends ConsumerWidget {
           child: FilledButton.icon(
             onPressed: () => _navigateToSiteDetail(context, site),
             icon: const Icon(Icons.dashboard, size: 16),
-            label: const Text('Détails'),
+            label: Text(l10n.translate('sites.details')),
           ),
         ),
       ],
     );
   }
 
-  String _formatLastSync(DateTime lastSync) {
+  String _formatLastSync(DateTime lastSync, AppLocalizations l10n) {
     final now = DateTime.now();
     final difference = now.difference(lastSync);
 
-    if (difference.inMinutes < 1) return 'À l\'instant';
+    if (difference.inMinutes < 1) return l10n.translate('sites.justNow');
     if (difference.inHours < 1) return '${difference.inMinutes}m';
     if (difference.inDays < 1) return '${difference.inHours}h';
     if (difference.inDays < 7) return '${difference.inDays}j';
