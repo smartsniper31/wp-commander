@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:wp_commander/domain/entities/site_entity.dart';
 
 import '../repositories/site_repository.dart';
 import '../repositories/stats_repository.dart';
@@ -20,7 +23,7 @@ class SyncService {
   // Synchronisation complète d'un site
   Future<SyncResult> syncSite(String siteId) async {
     final stopwatch = Stopwatch()..start();
-    
+
     try {
       // Synchroniser dans l'ordre
       await statsRepository.refreshStats(siteId);
@@ -38,7 +41,7 @@ class SyncService {
       );
     } catch (e) {
       stopwatch.stop();
-      
+
       return SyncResult(
         success: false,
         siteId: siteId,
@@ -52,23 +55,21 @@ class SyncService {
   // Synchronisation de tous les sites
   Future<BatchSyncResult> syncAllSites() async {
     final sitesEither = await siteRepository.getSites();
-    
+
     return sitesEither.fold(
-      (failure) {
-        return BatchSyncResult(
-          total: 0,
-          successful: 0,
-          failed: 0,
-          results: [],
-          timestamp: DateTime.now(),
-        );
-      },
+      (failure) => BatchSyncResult(
+        total: 0,
+        successful: 0,
+        failed: 0,
+        results: [],
+        timestamp: DateTime.now(),
+      ) as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult>,
       (sites) async {
         final results = <SyncResult>[];
         for (final site in sites) {
           final result = await syncSite(site.id);
           results.add(result);
-          
+
           // Petit délai entre chaque synchronisation
           await Future.delayed(const Duration(seconds: 1));
         }
@@ -83,18 +84,18 @@ class SyncService {
           results: results,
           timestamp: DateTime.now(),
         );
-      },
+      } as FutureOr<BatchSyncResult> Function(FutureOr<BatchSyncResult> previousValue, SiteEntity element),
     );
   }
 
   // Synchronisation intelligente (seulement si nécessaire)
   Future<SyncResult> smartSync(String siteId) async {
     final needsSync = await _needsSync(siteId);
-    
+
     if (needsSync) {
       return await syncSite(siteId);
     }
-    
+
     return SyncResult(
       success: true,
       siteId: siteId,
@@ -151,6 +152,4 @@ class BatchSyncResult {
     required this.results,
     required this.timestamp,
   });
-
-  double get successRate => total > 0 ? successful / total : 0;
 }

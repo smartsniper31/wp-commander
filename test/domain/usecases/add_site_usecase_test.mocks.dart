@@ -50,6 +50,15 @@ class MockSiteRepository extends _i1.Mock implements _i3.SiteRepository {
       ) as _i4.Future<List<_i2.SiteEntity>>);
 
   @override
+  _i4.Future<_i2.SiteEntity?> getSiteById(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #getSiteById,
+          [id],
+        ),
+        returnValue: _i4.Future<_i2.SiteEntity?>.value(),
+      ) as _i4.Future<_i2.SiteEntity?>);
+
+  @override
   _i4.Future<_i2.SiteEntity> addSite(_i2.SiteEntity? site) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -74,4 +83,31 @@ class MockSiteRepository extends _i1.Mock implements _i3.SiteRepository {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> updateSite(_i2.SiteEntity? site) => (super.noSuchMethod(
+        Invocation.method(
+          #updateSite,
+          [site],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<bool> validateApiKey({
+    required String? url,
+    required String? apiKey,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #validateApiKey,
+          [],
+          {
+            #url: url,
+            #apiKey: apiKey,
+          },
+        ),
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 }

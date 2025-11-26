@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
+import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
+import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 import 'package:wp_commander/presentation/widgets/animations/fade_in_animation.dart';
-
-import '../../providers/site/site_list_provider.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final siteAsync = ref.watch(siteListProvider);
+    final sitesState = ref.watch(sitesProvider);
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -26,8 +26,11 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: siteAsync.when(
-        data: (sites) => sites.isEmpty
+      body: switch (sitesState) {
+        SitesInitial() ||
+        SitesLoading() =>
+          const Center(child: CircularProgressIndicator()),
+        SitesLoaded(sites: final sites) => sites.isEmpty
             ? FadeInAnimation(
                 child: Center(
                   child: Padding(
@@ -54,9 +57,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
               )
             : RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(siteListProvider);
-                },
+                onRefresh: () => ref.read(sitesProvider.notifier).loadSites(),
                 child: ListView.builder(
                   itemCount: sites.length,
                   itemBuilder: (context, index) {
@@ -71,13 +72,10 @@ class DashboardPage extends ConsumerWidget {
                   },
                 ),
               ),
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => Center(
-          child: Text(l10n.translate('dashboard.loading_error')),
-        ),
-      ),
+        SitesError() => Center(
+            child: Text(l10n.translate('dashboard.loading_error')),
+          ),
+      },
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.go('/add-site');

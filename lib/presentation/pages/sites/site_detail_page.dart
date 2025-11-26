@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/performance/state_optimizer.dart';
 import '../../../domain/entities/site_entity.dart';
-import '../../providers/site/site_list_provider.dart';
+import '../../notifiers/sites_provider.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/animations/fade_in_animation.dart';
 import 'site_detail_view.dart';
@@ -22,7 +23,9 @@ class SiteDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.sync),
-            onPressed: () {},
+            onPressed: () {
+              ref.read(sitesProvider.notifier).syncSite(siteId);
+            },
           ),
           IconButton(
             icon: const Icon(Icons.edit),

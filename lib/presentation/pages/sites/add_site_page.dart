@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
+import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
+import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 
 import '../../providers/site/site_form_provider.dart';
-import '../../providers/site/site_list_provider.dart';
 import '../../widgets/animations/fade_in_animation.dart';
 import '../../widgets/common/animated_button.dart';
 import '../../widgets/forms/custom_text_field.dart';
@@ -17,37 +18,29 @@ class AddSitePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formState = ref.watch(siteFormProvider);
     final formNotifier = ref.read(siteFormProvider.notifier);
+    final sitesState = ref.watch(sitesProvider);
 
-    // Listen for state changes in the siteListProvider to handle side-effects
-    // like navigation or showing snackbars after an operation.
-    ref.listen<AsyncValue<List<SiteEntity>>>(
-      siteListProvider,
+    // Listen for state changes to handle side-effects
+    ref.listen<SitesState>(
+      sitesProvider,
       (previous, next) {
-        // We are only interested in the transition from a loading state.
-        if (previous?.isLoading ?? false) {
-          next.when(
-            data: (_) {
-              // Operation succeeded
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Site ajouté avec succès!')),
-              );
-              formNotifier.reset();
-              Navigator.of(context).pop();
-            },
-            error: (err, __) {
-              // Operation failed
-              if (!context.mounted) return;
-              final message =
-                  err is Exception ? err.toString() : 'Une erreur est survenue.';
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
-            },
-            loading: () {
-              // Still loading, do nothing.
-            },
-          );
+        // We only want to react when the submission process is finished.
+        final wasSubmitting = previous is SitesLoading;
+
+        if (wasSubmitting) {
+          if (next is SitesLoaded) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Site ajouté avec succès!')),
+            );
+            formNotifier.reset();
+            Navigator.of(context).pop();
+          } else if (next is SitesError) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(next.message)),
+            );
+          }
         }
       },
     );
@@ -78,22 +71,18 @@ class AddSitePage extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: AnimatedButton(
-                // The button is disabled when the list is in a loading state,
-                // preventing double submissions.
-                onPressed: ref.watch(siteListProvider).isLoading
+                onPressed: sitesState is SitesLoading
                     ? null
                     : () {
                         if (formNotifier.validate()) {
                           final site = SiteEntity(
-                            id: DateTime.now().millisecondsSinceEpoch.toString(), // Temp ID
+                            id: '', // Will be replaced by repository
                             name: formState.name,
                             url: formState.url,
                             apiKey: formState.apiKey,
                             createdAt: DateTime.now(),
                           );
-                          // Calling addSite will trigger the state change
-                          // which is handled by the ref.listen above.
-                          ref.read(siteListProvider.notifier).addSite(site);
+                          ref.read(sitesProvider.notifier).addSite(site);
                         }
                       },
                 child: const Text('Ajouter le site'),

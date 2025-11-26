@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
+import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
 
 import '../../../domain/entities/site_entity.dart';
 import '../common/animated_card.dart';
 
 class SiteCard extends ConsumerWidget {
   final SiteEntity site;
-  final int index;
+  final Function()? onTap;
 
-  const SiteCard({super.key, required this.site, required this.index});
+  const SiteCard({super.key, required this.site, this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,9 +19,8 @@ class SiteCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return AnimatedCard(
-      index: index,
       child: InkWell(
-        onTap: () => _navigateToSiteDetail(context, site),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -166,7 +167,7 @@ class SiteCard extends ConsumerWidget {
         const SizedBox(width: 8),
         Expanded(
           child: FilledButton.icon(
-            onPressed: () => _navigateToSiteDetail(context, site),
+            onPressed: onTap,
             icon: const Icon(Icons.dashboard, size: 16),
             label: Text(l10n.translate('sites.details')),
           ),
@@ -187,11 +188,7 @@ class SiteCard extends ConsumerWidget {
     return '${lastSync.day}/${lastSync.month}';
   }
 
-  void _navigateToSiteDetail(BuildContext context, SiteEntity site) {
-    // AppRouter.router.push('${AppRoutes.siteDetail}?id=${site.id}');
-  }
-
   void _syncSite(WidgetRef ref) {
-    // ref.read(siteListProvider.notifier).syncSite(site.id);
+    ref.read(sitesProvider.notifier).syncSite(site.id);
   }
 }

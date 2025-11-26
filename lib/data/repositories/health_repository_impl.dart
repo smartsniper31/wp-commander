@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/core/errors/exceptions.dart';
+import 'package:wp_commander/core/errors/failures.dart';
+// ignore: unused_import
 import 'package:wp_commander/data/repositories/site_repository_impl.dart';
 import 'package:wp_commander/data/adapters/api_adapter.dart';
 import 'package:wp_commander/data/models/api/wp_health_model.dart';
@@ -31,13 +34,13 @@ class HealthRepositoryImpl implements HealthRepository {
   }
 
   @override
-  Future<HealthEntity> getSiteHealth(String siteId) async {
+  Future<Either<Failure, HealthEntity>> getSiteHealth(String siteId) async {
     final cacheKey = 'health_$siteId';
     try {
       final cachedData = await CacheManager.getValidData(cacheKey);
       if (cachedData != null && cachedData.isNotEmpty) {
         final healthData = jsonDecode(cachedData);
-        return ApiAdapter.fromWpHealth(WPHealthModel.fromJson(healthData));
+        return Right(ApiAdapter.fromWpHealth(WPHealthModel.fromJson(healthData)));
       }
     } catch (e) {
       // Cache is invalid or corrupted, fetch from network
@@ -53,19 +56,22 @@ class HealthRepositoryImpl implements HealthRepository {
         dataType: 'health',
         siteId: siteId,
       );
-      return ApiAdapter.fromWpHealth(healthData);
-    } on UseCaseException {
-      rethrow;
+      return Right(ApiAdapter.fromWpHealth(healthData));
+    } on UseCaseException catch(e) {
+      return Left(ServerFailure(e.message, message: ''));
     } catch (e) {
-      throw UseCaseException(message: 'Failed to get site health: ${e.toString()}');
+      return Left(ServerFailure('Failed to get site health: ${e.toString()}', message: ''));
     }
   }
 
   @override
   Future<List<HealthIssue>> runHealthCheck(String siteId) async {
     try {
-      final health = await getSiteHealth(siteId);
-      return health.issues;
+      final healthResult = await getSiteHealth(siteId);
+      return healthResult.fold(
+        (failure) => throw UseCaseException(message: failure.message),
+        (health) => health.issues,
+      );
     } on UseCaseException {
       rethrow;
     } catch (e) {

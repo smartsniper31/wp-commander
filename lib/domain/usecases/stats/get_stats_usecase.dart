@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/core/providers/repository_providers.dart' show statsRepositoryProvider;
 
 import '../../../core/errors/exceptions.dart';
 import '../../entities/stats_entity.dart';
