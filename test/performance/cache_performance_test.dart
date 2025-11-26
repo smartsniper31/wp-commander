@@ -1,14 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wp_commander/data/datasources/local/cache_manager.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
-group('Cache Performance Tests', () {
+
+  group('Cache Performance Tests', () {
     test('Cache read/write performance', () async {
       // Arrange
+      SharedPreferences.setMockInitialValues({});
       const testData = {'key': 'value', 'number': 42};
       const iterations = 100;
 

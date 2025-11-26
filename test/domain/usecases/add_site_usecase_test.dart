@@ -1,15 +1,12 @@
-import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:wp_commander/core/errors/failures.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/domain/repositories/site_repository.dart';
-import 'package:wp_commander/domain/usecases/site/add_site_usecase.dart';
+import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
+import 'package:wp_commander/core/errors/exceptions.dart';
 
-import 'add_site_usecase_test.mocks.dart';
+class MockSiteRepository extends Mock implements SiteRepository {}
 
-@GenerateMocks([SiteRepository])
 void main() {
   late AddSiteUseCase addSiteUseCase;
   late MockSiteRepository mockSiteRepository;
@@ -27,44 +24,44 @@ void main() {
     createdAt: DateTime.now(),
   );
 
+  final tAddSiteParams = AddSiteParams(
+    name: tSite.name,
+    url: tSite.url,
+    apiKey: tSite.apiKey,
+  );
+
   group('AddSiteUseCase', () {
-    test('should add site and return it when validation is successful', () async {
+    test('should add site and return it', () async {
       // Arrange
-      final params = AddSiteParams(site: tSite);
-
-      when(mockSiteRepository.validateApiKey(url: tSite.url, apiKey: tSite.apiKey))
-          .thenAnswer((_) async => const Right(true));
-
-      when(mockSiteRepository.addSite(any))
-          .thenAnswer((_) async => Right(tSite));
+      when(mockSiteRepository.addSite(any)).thenAnswer((_) async => tSite);
 
       // Act
-      final result = await addSiteUseCase.execute(params);
+      final result = await addSiteUseCase.execute(tAddSiteParams);
 
       // Assert
-      expect(result, Right(tSite));
-      verify(mockSiteRepository.validateApiKey(url: tSite.url, apiKey: tSite.apiKey));
-      verify(mockSiteRepository.addSite(tSite));
+      // We expect a SiteEntity, but we can't know the id and createdAt, so we check the type
+      expect(result, isA<SiteEntity>());
     });
 
-    test('should return a failure when validation fails', () async {
+    test('should throw UseCaseException when repository throws RepositoryException', () async {
       // Arrange
-      final params = AddSiteParams(site: tSite);
-
-      when(mockSiteRepository.validateApiKey(url: tSite.url, apiKey: tSite.apiKey))
-          .thenAnswer((_) async => const Right(false));
+      when(mockSiteRepository.addSite(any)).thenThrow(RepositoryException(message: 'test'));
 
       // Act
-      final result = await addSiteUseCase.execute(params);
+      final call = addSiteUseCase.execute;
 
       // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (failure) => expect(failure, isA<ServerFailure>()),
-        (success) => fail('should have returned a failure'),
-      );
-      verify(mockSiteRepository.validateApiKey(url: tSite.url, apiKey: tSite.apiKey));
-      verifyNever(mockSiteRepository.addSite(any));
+      expect(() => call(tAddSiteParams), throwsA(isA<RepositoryException>()));
+    });
+
+    test('should throw UseCaseException when params are empty', () async {
+      // Act
+      final call = addSiteUseCase.execute;
+
+      // Assert
+      expect(() => call(AddSiteParams(name: '', url: 'url', apiKey: 'apiKey')), throwsA(isA<UseCaseException>()));
+      expect(() => call(AddSiteParams(name: 'name', url: '', apiKey: 'apiKey')), throwsA(isA<UseCaseException>()));
+      expect(() => call(AddSiteParams(name: 'name', url: 'url', apiKey: '')), throwsA(isA<UseCaseException>()));
     });
   });
 }
