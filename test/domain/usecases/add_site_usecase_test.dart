@@ -33,7 +33,7 @@ void main() {
   group('AddSiteUseCase', () {
     test('should add site and return it', () async {
       // Arrange
-      when(mockSiteRepository.addSite(any)).thenAnswer((_) async => tSite);
+      when(mockSiteRepository.addSite(argThat(isA<SiteEntity>()))).thenAnswer((_) async => tSite);
 
       // Act
       final result = await addSiteUseCase.execute(tAddSiteParams);
@@ -45,7 +45,7 @@ void main() {
 
     test('should throw UseCaseException when repository throws RepositoryException', () async {
       // Arrange
-      when(mockSiteRepository.addSite(any)).thenThrow(RepositoryException(message: 'test'));
+      when(mockSiteRepository.addSite(argThat(isA<SiteEntity>()))).thenThrow(RepositoryException(message: 'test'));
 
       // Act
       final call = addSiteUseCase.execute;

@@ -5,6 +5,17 @@ import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/presentation/pages/dashboard/dashboard_page.dart';
 import 'package:wp_commander/presentation/providers/site/site_list_provider.dart';
 
+// Helper class for testing
+class FakeSiteListNotifier extends SiteListNotifier {
+  FakeSiteListNotifier(this._mockSites);
+  final List<SiteEntity> _mockSites;
+
+  @override
+  Future<List<SiteEntity>> build() async {
+    return _mockSites;
+  }
+}
+
 void main() {
   testWidgets('DashboardPage displays loading indicator initially', (WidgetTester tester) async {
     // Arrange
@@ -22,22 +33,9 @@ void main() {
 
   testWidgets('DashboardPage displays empty state when no sites', (WidgetTester tester) async {
     // Arrange
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          siteListProvider.overrideWith(() => SiteListNotifier()),
-        ],
-        child: const MaterialApp(
-          home: DashboardPage(),
-        ),
-      ),
-    );
-
-    // Override the build method of SiteListNotifier to return an empty list
     final container = ProviderContainer(
       overrides: [
-        siteListProvider.overrideWith((ref) =>
-            SiteListNotifier()..state = AsyncValue.data([])),
+        siteListProvider.overrideWith(() => FakeSiteListNotifier([])),
       ],
     );
 
@@ -78,8 +76,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        siteListProvider.overrideWith((ref) =>
-            SiteListNotifier()..state = AsyncValue.data(mockSites)),
+        siteListProvider.overrideWith(() => FakeSiteListNotifier(mockSites)),
       ],
     );
 
