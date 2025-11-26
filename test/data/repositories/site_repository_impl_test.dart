@@ -64,8 +64,8 @@ void main() {
     group('addSite', () {
       test('should return site entity when validation and caching is successful', () async {
         // Arrange
-        when(mockRemoteDataSource.addSite(any, any)).thenAnswer((_) async => tSiteModel);
-        when(mockLocalDataSource.addSite(any)).thenAnswer((_) async => tSiteModel);
+        when(mockRemoteDataSource.addSite(argThat(isA<String>()), argThat(isA<String>()))).thenAnswer((_) async => tSiteModel);
+        when(mockLocalDataSource.addSite(argThat(isA<SiteModel>()))).thenAnswer((_) async => tSiteModel);
 
         // Act
         final result = await siteRepository.addSite(tSiteEntity);
@@ -81,7 +81,7 @@ void main() {
     group('deleteSite', () {
       test('should complete successfully when local data source deletion is successful', () async {
         // Arrange
-        when(mockLocalDataSource.deleteSite(any)).thenAnswer((_) async => Future.value());
+        when(mockLocalDataSource.deleteSite(argThat(isA<String>()))).thenAnswer((_) async => Future.value());
 
         // Act
         final call = siteRepository.deleteSite('1');
@@ -93,7 +93,7 @@ void main() {
 
       test('should throw UseCaseException when local data source throws CacheException', () async {
         // Arrange
-        when(mockLocalDataSource.deleteSite(any)).thenThrow(CacheException());
+        when(mockLocalDataSource.deleteSite(argThat(isA<String>()))).thenThrow(CacheException());
 
         // Act
         final call = siteRepository.deleteSite('1');
