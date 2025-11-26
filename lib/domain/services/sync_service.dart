@@ -63,7 +63,7 @@ class SyncService {
         failed: 0,
         results: [],
         timestamp: DateTime.now(),
-      ) as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult>,
+      ) as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult>,
       (sites) async {
         final results = <SyncResult>[];
         for (final site in sites) {
