@@ -27,7 +27,7 @@ class SiteRepositoryImpl implements SiteRepository {
         // Convert the result back to SiteEntity before returning
         return Right(newSiteModel.toEntity());
       } else {
-        return Left(ServerFailure(message: 'Validation failed'));
+        return Left(ValidationFailure(message: 'Validation failed'));
       }
     } catch (e) {
       return Left(ServerFailure(message: 'An error occurred while adding the site.'));

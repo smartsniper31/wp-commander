@@ -110,7 +110,7 @@ void main() {
       });
 
       test(
-          'should return Left with InvalidApiKeyFailure when validation fails',
+          'should return Left with ValidationFailure when validation fails',
           () async {
         // Arrange
         when(() => mockRemoteDataSource.validateConnection(
@@ -121,7 +121,7 @@ void main() {
 
         // Assert
         expect(result, isA<Left>());
-        expect(result.left, isA<InvalidApiKeyFailure>());
+        expect(result.left, isA<ValidationFailure>());
         verify(() => mockRemoteDataSource.validateConnection(
             tSiteEntity.url, tSiteEntity.apiKey));
         verifyNoMoreInteractions(mockRemoteDataSource);
