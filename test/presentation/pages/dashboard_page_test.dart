@@ -6,11 +6,10 @@ import 'package:wp_commander/presentation/pages/dashboard/dashboard_page.dart';
 import 'package:wp_commander/presentation/providers/site/site_list_provider.dart';
 
 // Helper class for testing
-class FakeSiteListNotifier extends SiteListNotifier {
+class FakeSiteListNotifier {
   FakeSiteListNotifier(this._mockSites);
   final List<SiteEntity> _mockSites;
 
-  @override
   Future<List<SiteEntity>> build() async {
     return _mockSites;
   }
