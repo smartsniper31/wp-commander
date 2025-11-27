@@ -72,7 +72,7 @@ class AddSiteDialog extends ConsumerWidget {
                 apiKey: _apiKeyController.text,
                 createdAt: DateTime.now(),
               );
-              ref.read(sitesNotifierProvider.notifier).addSite(AddSiteParams(site: site));
+              ref.read(sitesNotifierProvider.notifier).addSite(AddSiteParams(site: site, name: '', url: '', apiKey: ''));
               Navigator.of(context).pop();
             }
           },
