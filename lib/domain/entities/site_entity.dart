@@ -1,5 +1,6 @@
+import 'package:equatable/equatable.dart';
 
-class SiteEntity {
+class SiteEntity extends Equatable {
   final String id;
   final String name;
   final String url;
@@ -47,4 +48,7 @@ class SiteEntity {
       adminEmail: adminEmail ?? this.adminEmail,
     );
   }
+
+  @override
+  List<Object?> get props => [id, name, url, apiKey, createdAt, lastSync, isConnected, siteIcon, adminEmail];
 }

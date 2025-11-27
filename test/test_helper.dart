@@ -1,26 +1,23 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:wp_commander/domain/usecases/base_usecase.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/core/localization/app_localizations.dart';
+import 'package:wp_commander/core/router.dart';
 
-// Configuration globale pour les tests
-void initTestConfig() {
-  // Configuration des timeouts
-  setUpAll(() {
-    // Désactiver les animations pendant les tests
-    TestWidgetsFlutterBinding.ensureInitialized();
-  });
-
-  setUp(() {
-    // Reset entre chaque test
-  });
-
-  tearDown(() {
-    // Nettoyage après chaque test
-  });
-}
-
-// Helper methods pour les tests
-Matcher isUseCaseError(String message) {
-  return predicate((dynamic error) {
-    return error is UseCaseException && error.message.contains(message);
-  });
+Widget createTestWidget({
+  required Widget child,
+  required List<Override> overrides,
+}) {
+  return ProviderScope(
+    overrides: overrides,
+    child: MaterialApp.router(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('fr'),
+      ],
+      routerConfig: router,
+    ),
+  );
 }
