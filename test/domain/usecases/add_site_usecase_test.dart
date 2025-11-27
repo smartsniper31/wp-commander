@@ -1,140 +1,87 @@
 import 'package:either_dart/either.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wp_commander/core/errors/failures.dart';
-import 'package:wp_commander/core/providers/repository_providers.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/domain/repositories/site_repository.dart';
-import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
-import 'package:wp_commander/presentation/notifiers/sites_state.dart';
+import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
+import 'package:wp_commander/core/errors/failures.dart';
 
-// 1. Listener class to mock the UI and listen to state changes
-class Listener<T> {
-  final List<T> states = [];
-  void call(T? previous, T value) {
-    states.add(value);
-  }
-}
-
-// 2. Mock repository
-class MockSiteRepository implements SiteRepository {
-  final List<SiteEntity> _sites = [];
-
-  @override
-  Future<Either<Failure, SiteEntity>> addSite(SiteEntity site) async {
-    if (site.name.isEmpty) {
-      return Left(ServerFailure(message: 'Name cannot be empty'));
-    }
-    _sites.add(site);
-    return Right(site);
-  }
-
-  @override
-  Future<Either<Failure, void>> deleteSite(String id) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, SiteEntity?>> getSiteById(String id) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, List<SiteEntity>>> getSites() async {
-    return Right(_sites);
-  }
-
-  @override
-  Future<Either<Failure, void>> updateSite(SiteEntity site) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Either<Failure, bool>> validateApiKey(
-      {required String url, required String apiKey}) {
-    throw UnimplementedError();
-  }
-}
+// 1. Create a mock for the repository
+class MockSiteRepository extends Mock implements SiteRepository {}
 
 void main() {
-  group('SitesNotifier', () {
-    late ProviderContainer container;
-    late Listener<SitesState> listener;
+  late AddSiteUseCase useCase;
+  late MockSiteRepository mockSiteRepository;
 
-    final tSite = SiteEntity(
+  setUp(() {
+    mockSiteRepository = MockSiteRepository();
+    useCase = AddSiteUseCase(mockSiteRepository);
+    registerFallbackValue(SiteEntity(
       id: '1',
-      name: 'Test Site',
-      url: 'https://example.com',
-      apiKey: 'test_key',
+      name: 'fallback',
+      url: 'http://fallback.com',
+      apiKey: 'fb_key',
       createdAt: DateTime.now(),
+    ));
+  });
+
+  // 2. Prepare test data
+  final tParams = AddSiteParams(
+    name: 'Test Site',
+    url: 'https://example.com',
+    apiKey: 'test_key',
+  );
+  
+  final tSiteEntity = SiteEntity(
+    id: '1',
+    name: 'Test Site',
+    url: 'https://example.com',
+    apiKey: 'test_key',
+    createdAt: DateTime.now(),
+  );
+
+  group('AddSiteUseCase', () {
+    test(
+      'should call repository to add a site and return the site entity on success',
+      () async {
+        // Arrange
+        // 3. Stub the repository method
+        when(() => mockSiteRepository.addSite(any())).thenAnswer((_) async => Right(tSiteEntity));
+
+        // Act
+        // 4. Execute the use case
+        final result = await useCase.execute(tParams);
+
+        // Assert
+        // 5. Verify the result and interactions
+        expect(result, Right(tSiteEntity));
+        
+        final captured = verify(() => mockSiteRepository.addSite(captureAny())).captured;
+        final capturedSite = captured.first as SiteEntity;
+
+        expect(capturedSite.name, tParams.name);
+        expect(capturedSite.url, tParams.url);
+        expect(capturedSite.apiKey, tParams.apiKey);
+        
+        verifyNoMoreInteractions(mockSiteRepository);
+      },
     );
 
-    setUp(() {
-      container = ProviderContainer(
-        overrides: [
-          // 3. Override the repository provider with our mock
-          siteRepositoryProvider.overrideWithValue(MockSiteRepository()),
-        ],
-      );
-      listener = Listener<SitesState>();
-      // 4. Listen to the notifier
-      container.listen<SitesState>(
-        sitesNotifierProvider,
-        listener.call,
-        fireImmediately: true,
-      );
-    });
+    test(
+      'should return a failure when repository call fails',
+      () async {
+        // Arrange
+        const tFailure = ServerFailure(message: 'Server Error');
+        when(() => mockSiteRepository.addSite(any())).thenAnswer((_) async => const Left(tFailure));
 
-    tearDown(() {
-      container.dispose();
-    });
+        // Act
+        final result = await useCase.execute(tParams);
 
-    test('initial state is correct', () {
-      // Assert
-      expect(
-        container.read(sitesNotifierProvider),
-        const SitesState.initial(),
-      );
-    });
-
-    test('should get sites when initialized', () async {
-      // Arrange
-      // The notifier fetches sites on creation.
-      // We need to wait for the event loop to process the future.
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Assert
-      expect(listener.states, [
-        const SitesState.initial(),
-        const SitesState.loading(),
-        const SitesState.loaded([]),
-      ]);
-    });
-
-    test('should add a site and update the state', () async {
-      // Arrange
-      final notifier = container.read(sitesNotifierProvider.notifier);
-
-      // Act
-      await notifier.addSite(tSite);
-
-      // Assert
-      expect(listener.states.last, SitesState.loaded([tSite]));
-    });
-
-    test('should return a failure when adding an invalid site', () async {
-      // Arrange
-      final notifier = container.read(sitesNotifierProvider.notifier);
-      final tInvalidSite = tSite.copyWith(name: '');
-
-      // Act
-      await notifier.addSite(tInvalidSite);
-
-      // Assert
-      expect(
-        listener.states.last,
-        const SitesState.error('Name cannot be empty'),
-      );
-    });
+        // Assert
+        expect(result, const Left(tFailure));
+        verify(() => mockSiteRepository.addSite(any()));
+        verifyNoMoreInteractions(mockSiteRepository);
+      },
+    );
   });
 }

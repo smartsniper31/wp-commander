@@ -21,8 +21,11 @@ class SiteRepositoryImpl implements SiteRepository {
       final isValid = await remoteDataSource.validateConnection(site.url, site.apiKey);
 
       if (isValid) {
-        final newSite = await localDataSource.addSite(SiteModel.fromEntity(site));
-        return Right(newSite);
+        // Convert SiteEntity to SiteModel before passing to the data source
+        final siteModel = SiteModel.fromEntity(site);
+        final newSiteModel = await localDataSource.addSite(siteModel);
+        // Convert the result back to SiteEntity before returning
+        return Right(newSiteModel.toEntity());
       } else {
         return Left(ServerFailure(message: 'Validation failed'));
       }
@@ -44,7 +47,9 @@ class SiteRepositoryImpl implements SiteRepository {
   @override
   Future<Either<Failure, List<SiteEntity>>> getSites() async {
     try {
-      final sites = await localDataSource.getSites();
+      final siteModels = await localDataSource.getSites();
+      // Convert List<SiteModel> to List<SiteEntity>
+      final sites = siteModels.map((model) => model.toEntity()).toList();
       return Right(sites);
     } catch (e) {
       return Left(CacheFailure(message: 'An error occurred while fetching sites.'));
@@ -54,8 +59,9 @@ class SiteRepositoryImpl implements SiteRepository {
   @override
   Future<Either<Failure, SiteEntity?>> getSiteById(String id) async {
     try {
-      final site = await localDataSource.getSiteById(id);
-      return Right(site);
+      final siteModel = await localDataSource.getSiteById(id);
+      // Convert SiteModel? to SiteEntity?
+      return Right(siteModel?.toEntity());
     } catch (e) {
       return Left(CacheFailure(message: 'An error occurred while fetching the site.'));
     }
@@ -64,6 +70,7 @@ class SiteRepositoryImpl implements SiteRepository {
   @override
   Future<Either<Failure, void>> updateSite(SiteEntity site) async {
     try {
+      // Convert SiteEntity to SiteModel before passing to the data source
       await localDataSource.updateSite(SiteModel.fromEntity(site));
       return const Right(null);
     } catch (e) {

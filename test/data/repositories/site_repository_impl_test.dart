@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:wp_commander/core/errors/exceptions.dart';
 import 'package:wp_commander/core/errors/failures.dart';
 import 'package:wp_commander/data/datasources/local/site_local_datasource.dart';
@@ -7,9 +7,10 @@ import 'package:wp_commander/data/datasources/site_remote_datasource.dart';
 import 'package:wp_commander/data/models/site_model.dart';
 import 'package:wp_commander/data/repositories/site_repository_impl.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
+import 'package:either_dart/either.dart';
 
+// 1. Create Mocks with Mocktail
 class MockSiteLocalDataSource extends Mock implements SiteLocalDataSource {}
-
 class MockSiteRemoteDataSource extends Mock implements SiteRemoteDataSource {}
 
 void main() {
@@ -24,6 +25,14 @@ void main() {
       localDataSource: mockLocalDataSource,
       remoteDataSource: mockRemoteDataSource,
     );
+    // 2. Register fallback values for any() matchers
+    registerFallbackValue(SiteModel.fromEntity(SiteEntity(
+      id: '1',
+      name: 'fallback',
+      url: 'http://fallback.com',
+      apiKey: 'fb_key',
+      createdAt: DateTime.now(),
+    )));
   });
 
   final tSiteEntity = SiteEntity(
@@ -41,8 +50,7 @@ void main() {
           'should return Right with list of sites from local data source when call is successful',
           () async {
         // Arrange
-        when(mockLocalDataSource.getSites())
-            .thenAnswer((_) async => [tSiteModel]);
+        when(() => mockLocalDataSource.getSites()).thenAnswer((_) async => [tSiteModel]);
 
         // Act
         final result = await siteRepository.getSites();
@@ -50,7 +58,7 @@ void main() {
         // Assert
         expect(result.isRight, isTrue);
         expect(result.right, [tSiteEntity]);
-        verify(mockLocalDataSource.getSites());
+        verify(() => mockLocalDataSource.getSites());
         verifyNoMoreInteractions(mockLocalDataSource);
       });
 
@@ -58,15 +66,15 @@ void main() {
           'should return Left with CacheFailure when local data source throws CacheException',
           () async {
         // Arrange
-        when(mockLocalDataSource.getSites()).thenThrow(CacheException());
+        when(() => mockLocalDataSource.getSites()).thenThrow(CacheException());
 
         // Act
         final result = await siteRepository.getSites();
 
         // Assert
-        expect(result.isLeft, isTrue);
+        expect(result, isA<Left>());
         expect(result.left, isA<CacheFailure>());
-        verify(mockLocalDataSource.getSites());
+        verify(() => mockLocalDataSource.getSites());
       });
     });
 
@@ -75,21 +83,16 @@ void main() {
           'should return Right with site entity when validation and caching is successful',
           () async {
         // Arrange
-        when(mockRemoteDataSource.addSite(
-                tSiteEntity.url, tSiteEntity.apiKey))
-            .thenAnswer((_) async => tSiteModel);
-        when(mockLocalDataSource.addSite(tSiteModel))
-            .thenAnswer((_) => Future.value(tSiteModel));
+        when(() => mockRemoteDataSource.addSite(any(), any())).thenAnswer((_) async => tSiteModel);
+        when(() => mockLocalDataSource.addSite(any())).thenAnswer((_) => Future.value(tSiteModel));
 
         // Act
         final result = await siteRepository.addSite(tSiteEntity);
 
         // Assert
-        expect(result.isRight, isTrue);
-        expect(result.right, tSiteEntity);
-        verify(mockRemoteDataSource.addSite(
-            tSiteEntity.url, tSiteEntity.apiKey));
-        verify(mockLocalDataSource.addSite(tSiteModel));
+        expect(result, Right(tSiteEntity));
+        verify(() => mockRemoteDataSource.addSite(tSiteEntity.url, tSiteEntity.apiKey));
+        verify(() => mockLocalDataSource.addSite(tSiteModel));
       });
     });
 
@@ -99,31 +102,29 @@ void main() {
           'should return Right(null) when local data source deletion is successful',
           () async {
         // Arrange
-        when(mockLocalDataSource.deleteSite(tSiteId))
-            .thenAnswer((_) => Future.value());
+        when(() => mockLocalDataSource.deleteSite(any())).thenAnswer((_) => Future.value());
 
         // Act
         final result = await siteRepository.deleteSite(tSiteId);
 
         // Assert
-        expect(result.isRight, isTrue);
-        verify(mockLocalDataSource.deleteSite(tSiteId));
+        expect(result, const Right(null));
+        verify(() => mockLocalDataSource.deleteSite(tSiteId));
       });
 
       test(
           'should return Left with CacheFailure when local data source throws CacheException',
           () async {
         // Arrange
-        when(mockLocalDataSource.deleteSite(tSiteId))
-            .thenThrow(CacheException());
+        when(() => mockLocalDataSource.deleteSite(any())).thenThrow(CacheException());
 
         // Act
         final result = await siteRepository.deleteSite(tSiteId);
 
         // Assert
-        expect(result.isLeft, isTrue);
+        expect(result, isA<Left>());
         expect(result.left, isA<CacheFailure>());
-        verify(mockLocalDataSource.deleteSite(tSiteId));
+        verify(() => mockLocalDataSource.deleteSite(tSiteId));
       });
     });
   });

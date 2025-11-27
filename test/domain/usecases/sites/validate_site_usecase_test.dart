@@ -1,5 +1,7 @@
+import 'package:either_dart/either.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:wp_commander/core/errors/failures.dart';
 import 'package:wp_commander/domain/repositories/site_repository.dart';
 import 'package:wp_commander/domain/usecases/sites/validate_site_usecase.dart';
 
@@ -14,37 +16,48 @@ void main() {
     useCase = ValidateSiteUseCase(mockSiteRepository);
   });
 
-  const tUrl = 'https://example.com';
-  const tApiKey = 'test_key';
+  const tParams = ValidateSiteParams(url: 'https://example.com', apiKey: 'test_key');
 
-  test('should return true when validation is successful', () async {
+  test('should call repository and return true on successful validation', () async {
     // Arrange
-    when(mockSiteRepository.validateApiKey(url: '', apiKey: ''))
-        .thenAnswer((_) async => true);
+    when(() => mockSiteRepository.validateApiKey(url: any(named: 'url'), apiKey: any(named: 'apiKey')))
+        .thenAnswer((_) async => const Right(true));
 
     // Act
-    final result = await useCase
-        .execute(const ValidateSiteParams(url: tUrl, apiKey: tApiKey));
+    final result = await useCase.execute(tParams);
 
     // Assert
-    expect(result, true);
-    verify(
-        mockSiteRepository.validateApiKey(tUrl, tApiKey, url: '', apiKey: ''));
+    expect(result, const Right(true));
+    verify(() => mockSiteRepository.validateApiKey(url: tParams.url, apiKey: tParams.apiKey));
     verifyNoMoreInteractions(mockSiteRepository);
   });
 
-  test('should return false when validation fails', () async {
+  test('should call repository and return false on failed validation', () async {
     // Arrange
-    when(mockSiteRepository.validateApiKey(url: '', apiKey: ''))
-        .thenAnswer((_) async => false);
+    when(() => mockSiteRepository.validateApiKey(url: any(named: 'url'), apiKey: any(named: 'apiKey')))
+        .thenAnswer((_) async => const Right(false));
 
     // Act
-    final result = await useCase
-        .execute(const ValidateSiteParams(url: tUrl, apiKey: tApiKey));
+    final result = await useCase.execute(tParams);
 
     // Assert
-    expect(result, false);
-    verify(mockSiteRepository.validateApiKey(tUrl, tApiKey));
+    expect(result, const Right(false));
+    verify(() => mockSiteRepository.validateApiKey(url: tParams.url, apiKey: tParams.apiKey));
+    verifyNoMoreInteractions(mockSiteRepository);
+  });
+
+  test('should return a failure when the repository call fails', () async {
+    // Arrange
+    const tFailure = ServerFailure(message: 'Server Error');
+    when(() => mockSiteRepository.validateApiKey(url: any(named: 'url'), apiKey: any(named: 'apiKey')))
+        .thenAnswer((_) async => const Left(tFailure));
+
+    // Act
+    final result = await useCase.execute(tParams);
+
+    // Assert
+    expect(result, const Left(tFailure));
+    verify(() => mockSiteRepository.validateApiKey(url: tParams.url, apiKey: tParams.apiKey));
     verifyNoMoreInteractions(mockSiteRepository);
   });
 }

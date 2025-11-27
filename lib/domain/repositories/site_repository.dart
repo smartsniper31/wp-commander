@@ -10,9 +10,7 @@ abstract class SiteRepository {
   Future<Either<Failure, void>> deleteSite(String id);
   Future<Either<Failure, void>> updateSite(SiteEntity site);
   
-  // CORRECTION : Supprime l'utilisation non valide de `any, any`.
-  // La méthode attend désormais uniquement les arguments nommés 'url' et 'apiKey'.
-  Future<Either<Failure, bool>> validateApiKey(String tUrl, String tApiKey, {
+  Future<Either<Failure, bool>> validateApiKey({
     required String url,
     required String apiKey,
   });

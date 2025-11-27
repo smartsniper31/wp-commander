@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-
 import '../../../domain/entities/site_entity.dart';
 
 @immutable
@@ -40,5 +39,15 @@ class SiteModel extends SiteEntity {
       'api_key': apiKey,
       'createdAt': createdAt.toIso8601String(),
     };
+  }
+
+  SiteEntity toEntity() {
+    return SiteEntity(
+      id: id,
+      name: name,
+      url: url,
+      apiKey: apiKey,
+      createdAt: createdAt,
+    );
   }
 }
