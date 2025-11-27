@@ -1,7 +1,7 @@
 import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/core/errors/failures.dart';
-import 'package:wp_commander/data/repositories/comments_repository_impl.dart';
+import 'package:wp_commander/core/providers/repository_providers.dart';
 import '../../entities/comment_entity.dart';
 import '../../repositories/comments_repository.dart';
 
