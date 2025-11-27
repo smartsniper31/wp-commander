@@ -29,8 +29,20 @@ class SiteRemoteDataSourceImpl implements SiteRemoteDataSource {
 
   @override
   Future<SiteModel> addSite(String url, String apiKey) async {
-    // TODO: implement addSite
-    throw UnimplementedError();
+    final response = await client.post(
+      Uri.parse('$url/wp-json/wp-commander/v1/sites'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      body: json.encode({'url': url}),
+    );
+
+    if (response.statusCode == 201) {
+      return SiteModel.fromJson(json.decode(response.body));
+    } else {
+      throw ServerException();
+    }
   }
 
   @override
