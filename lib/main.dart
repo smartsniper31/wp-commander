@@ -55,7 +55,7 @@ void main() async {
       ),
     );
   } catch (e, s) {
-    debugPrint('Erreur d\\'initialisation: $e\\n$s');
+    debugPrint('Erreur d\'initialisation: $e\n$s');
     runApp(InitializationErrorPage(error: e, stackTrace: s));
   }
 }
