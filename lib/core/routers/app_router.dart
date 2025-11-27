@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../presentation/pages/dashboard/dashboard_page.dart';
 import '../../presentation/pages/sites/add_site_page.dart';
+import '../../presentation/pages/sites/site_detail_page.dart';
 import '../../presentation/pages/error/error_404_page.dart';
 import 'routes.dart';
 
@@ -36,14 +37,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.siteDetail,
         name: 'siteDetail',
         pageBuilder: (context, state) {
-          final siteId = state.uri.queryParameters['id'];
-          // TODO: Implémenter SiteDetailPage
+          final siteId = state.uri.queryParameters['id']!;
           return MaterialPage(
             key: state.pageKey,
-            child: Scaffold(
-              appBar: AppBar(title: const Text('Détails du site')),
-              body: Center(child: Text('Détails pour le site: $siteId')),
-            ),
+            child: SiteDetailPage(siteId: siteId),
           );
         },
       ),
