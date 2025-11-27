@@ -1,7 +1,13 @@
 import 'package:either_dart/either.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/core/errors/failures.dart';
+import 'package:wp_commander/data/repositories/comments_repository_impl.dart';
 import '../../entities/comment_entity.dart';
 import '../../repositories/comments_repository.dart';
+
+final fetchCommentsUseCaseProvider = Provider<FetchCommentsUseCase>((ref) {
+  return FetchCommentsUseCase(ref.watch(commentsRepositoryProvider));
+});
 
 class FetchCommentsUseCase {
   final CommentsRepository _repository;

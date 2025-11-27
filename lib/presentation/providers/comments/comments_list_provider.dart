@@ -81,24 +81,23 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
       currentPage: nextPage,
     );
 
-    try {
-      final newComments = await _getAllCommentsUseCase.execute(
-        siteId: siteId,
-        page: nextPage,
-        status: state.filterStatus,
-      );
-      
-      state = state.copyWith(
+    final result = await _getAllCommentsUseCase.execute(
+      siteId: siteId,
+      page: nextPage,
+      status: state.filterStatus,
+    );
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        error: failure.message,
+      ),
+      (newComments) => state = state.copyWith(
         comments: loadMore ? [...state.comments, ...newComments] : newComments,
         isLoading: false,
         hasMore: newComments.isNotEmpty,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-    }
+      ),
+    );
   }
 
   // Changer le filtre
