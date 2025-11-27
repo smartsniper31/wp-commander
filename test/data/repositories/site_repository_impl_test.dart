@@ -1,4 +1,3 @@
-import 'package:either_dart/either.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:wp_commander/core/errors/exceptions.dart';

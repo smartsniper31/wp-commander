@@ -19,27 +19,27 @@ void main() {
 
   test('should return true when validation is successful', () async {
     // Arrange
-    when(mockSiteRepository.validateApiKey(any, any)).thenAnswer((_) async => true);
+    when(mockSiteRepository.validateApiKey(any, any, url: '', apiKey: '')).thenAnswer((_) async => true);
 
     // Act
     final result = await useCase.execute(const ValidateSiteParams(url: tUrl, apiKey: tApiKey));
 
     // Assert
     expect(result, true);
-    verify(mockSiteRepository.validateApiKey(tUrl, tApiKey));
+    verify(mockSiteRepository.validateApiKey(tUrl, tApiKey, url: '', apiKey: ''));
     verifyNoMoreInteractions(mockSiteRepository);
   });
 
   test('should return false when validation fails', () async {
     // Arrange
-    when(mockSiteRepository.validateApiKey(any, any)).thenAnswer((_) async => false);
+    when(mockSiteRepository.validateApiKey(any, any, url: '', apiKey: '')).thenAnswer((_) async => false);
 
     // Act
     final result = await useCase.execute(const ValidateSiteParams(url: tUrl, apiKey: tApiKey));
 
     // Assert
     expect(result, false);
-    verify(mockSiteRepository.validateApiKey(tUrl, tApiKey));
+    verify(mockSiteRepository.validateApiKey(tUrl, tApiKey, url: '', apiKey: ''));
     verifyNoMoreInteractions(mockSiteRepository);
   });
 }

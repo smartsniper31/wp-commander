@@ -9,7 +9,7 @@ abstract class SiteRepository {
   Future<Either<Failure, SiteEntity>> addSite(SiteEntity site);
   Future<Either<Failure, void>> deleteSite(String id);
   Future<Either<Failure, void>> updateSite(SiteEntity site);
-  Future<Either<Failure, bool>> validateApiKey({
+  Future<Either<Failure, bool>> validateApiKey(any, any, {
     required String url,
     required String apiKey,
   });
