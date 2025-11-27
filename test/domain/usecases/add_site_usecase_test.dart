@@ -1,67 +1,140 @@
+import 'package:either_dart/either.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+import 'package:wp_commander/core/errors/failures.dart';
+import 'package:wp_commander/core/providers/repository_providers.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/domain/repositories/site_repository.dart';
-import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
-import 'package:wp_commander/core/errors/exceptions.dart';
+import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
+import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 
-class MockSiteRepository extends Mock implements SiteRepository {}
+// 1. Listener class to mock the UI and listen to state changes
+class Listener<T> {
+  final List<T> states = [];
+  void call(T? previous, T value) {
+    states.add(value);
+  }
+}
+
+// 2. Mock repository
+class MockSiteRepository implements SiteRepository {
+  final List<SiteEntity> _sites = [];
+
+  @override
+  Future<Either<Failure, SiteEntity>> addSite(SiteEntity site) async {
+    if (site.name.isEmpty) {
+      return Left(ServerFailure(message: 'Name cannot be empty'));
+    }
+    _sites.add(site);
+    return Right(site);
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteSite(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, SiteEntity?>> getSiteById(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, List<SiteEntity>>> getSites() async {
+    return Right(_sites);
+  }
+
+  @override
+  Future<Either<Failure, void>> updateSite(SiteEntity site) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, bool>> validateApiKey(
+      {required String url, required String apiKey}) {
+    throw UnimplementedError();
+  }
+}
 
 void main() {
-  late AddSiteUseCase addSiteUseCase;
-  late MockSiteRepository mockSiteRepository;
+  group('SitesNotifier', () {
+    late ProviderContainer container;
+    late Listener<SitesState> listener;
 
-  setUp(() {
-    mockSiteRepository = MockSiteRepository();
-    addSiteUseCase = AddSiteUseCase(mockSiteRepository);
-  });
+    final tSite = SiteEntity(
+      id: '1',
+      name: 'Test Site',
+      url: 'https://example.com',
+      apiKey: 'test_key',
+      createdAt: DateTime.now(),
+    );
 
-  final tSite = SiteEntity(
-    id: '1',
-    name: 'Test Site',
-    url: 'https://example.com',
-    apiKey: 'test_key',
-    createdAt: DateTime.now(),
-  );
-
-  final tAddSiteParams = AddSiteParams(
-    name: tSite.name,
-    url: tSite.url,
-    apiKey: tSite.apiKey,
-  );
-
-  group('AddSiteUseCase', () {
-    test('should add site and return it', () async {
-      // Arrange
-      when(mockSiteRepository.addSite(argThat(isA<SiteEntity>()))).thenAnswer((_) async => tSite);
-
-      // Act
-      final result = await addSiteUseCase.execute(tAddSiteParams);
-
-      // Assert
-      // We expect a SiteEntity, but we can't know the id and createdAt, so we check the type
-      expect(result, isA<SiteEntity>());
+    setUp(() {
+      container = ProviderContainer(
+        overrides: [
+          // 3. Override the repository provider with our mock
+          siteRepositoryProvider.overrideWithValue(MockSiteRepository()),
+        ],
+      );
+      listener = Listener<SitesState>();
+      // 4. Listen to the notifier
+      container.listen<SitesState>(
+        sitesNotifierProvider,
+        listener.call,
+        fireImmediately: true,
+      );
     });
 
-    test('should throw UseCaseException when repository throws RepositoryException', () async {
-      // Arrange
-      when(mockSiteRepository.addSite(argThat(isA<SiteEntity>()))).thenThrow(RepositoryException(message: 'test'));
-
-      // Act
-      final call = addSiteUseCase.execute;
-
-      // Assert
-      expect(() => call(tAddSiteParams), throwsA(isA<RepositoryException>()));
+    tearDown(() {
+      container.dispose();
     });
 
-    test('should throw UseCaseException when params are empty', () async {
-      // Act
-      final call = addSiteUseCase.execute;
+    test('initial state is correct', () {
+      // Assert
+      expect(
+        container.read(sitesNotifierProvider),
+        const SitesState.initial(),
+      );
+    });
+
+    test('should get sites when initialized', () async {
+      // Arrange
+      // The notifier fetches sites on creation.
+      // We need to wait for the event loop to process the future.
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Assert
-      expect(() => call(AddSiteParams(name: '', url: 'url', apiKey: 'apiKey')), throwsA(isA<UseCaseException>()));
-      expect(() => call(AddSiteParams(name: 'name', url: '', apiKey: 'apiKey')), throwsA(isA<UseCaseException>()));
-      expect(() => call(AddSiteParams(name: 'name', url: 'url', apiKey: '')), throwsA(isA<UseCaseException>()));
+      expect(listener.states, [
+        const SitesState.initial(),
+        const SitesState.loading(),
+        const SitesState.loaded([]),
+      ]);
+    });
+
+    test('should add a site and update the state', () async {
+      // Arrange
+      final notifier = container.read(sitesNotifierProvider.notifier);
+
+      // Act
+      await notifier.addSite(tSite);
+
+      // Assert
+      expect(listener.states.last, SitesState.loaded([tSite]));
+    });
+
+    test('should return a failure when adding an invalid site', () async {
+      // Arrange
+      final notifier = container.read(sitesNotifierProvider.notifier);
+      final tInvalidSite = tSite.copyWith(name: '');
+
+      // Act
+      await notifier.addSite(tInvalidSite);
+
+      // Assert
+      expect(
+        listener.states.last,
+        const SitesState.error('Name cannot be empty'),
+      );
     });
   });
 }

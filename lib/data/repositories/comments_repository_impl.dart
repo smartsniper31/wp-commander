@@ -1,123 +1,138 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wp_commander/data/repositories/site_repository_impl.dart';
-
-import '../../core/errors/exceptions.dart';
-import '../../domain/entities/comment_entity.dart';
-import '../../domain/repositories/comments_repository.dart';
-import '../datasources/remote/wp_api_datasource.dart';
-import '../../core/providers/repository_providers.dart';
+import 'package:either_dart/either.dart';
+import 'package:wp_commander/core/errors/failures.dart';
+import 'package:wp_commander/data/datasources/comments_remote_datasource.dart';
+import 'package:wp_commander/data/datasources/local/site_local_datasource.dart';
+import 'package:wp_commander/domain/entities/comment_entity.dart';
+import 'package:wp_commander/domain/repositories/comments_repository.dart';
 
 class CommentsRepositoryImpl implements CommentsRepository {
-  final Ref ref;
+  final CommentsRemoteDataSource remoteDataSource;
+  final SiteLocalDataSource siteLocalDataSource;
 
-  CommentsRepositoryImpl(this.ref);
+  CommentsRepositoryImpl(
+      {required this.remoteDataSource, required this.siteLocalDataSource});
 
-  Future<WPApiDataSource> _getDataSource(String siteId) async {
-    final siteRepository = ref.read(siteRepositoryProvider);
-    final site = await siteRepository.getSiteById(siteId);
-    if (site != null) {
-      return WPApiDataSource(
-        baseUrl: site.url,
-        apiKey: site.apiKey,
-      );
-    } else {
-      throw UseCaseException(message: 'Site not found with ID: $siteId', code: 'SITE_NOT_FOUND');
+  @override
+  Future<Either<Failure, void>> approveComment(
+      String siteId, int commentId) async {
+    try {
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      await remoteDataSource.approveComment(site.url, site.apiKey, commentId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: 'Failed to approve comment'));
     }
   }
 
   @override
-  Future<List<CommentEntity>> getComments(String siteId, {int page = 1, int perPage = 10}) async {
+  Future<Either<Failure, void>> deleteComment(
+      String siteId, int commentId) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      return await dataSource.getComments(page: page, perPage: perPage);
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      await remoteDataSource.deleteComment(site.url, site.apiKey, commentId);
+      return const Right(null);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to fetch comments: ${e.toString()}');
+      return Left(ServerFailure(message: 'Failed to delete comment'));
     }
   }
 
   @override
-  Future<CommentEntity?> getComment(String siteId, int commentId) async {
+  Future<Either<Failure, CommentEntity?>> getComment(
+      String siteId, int commentId) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      return await dataSource.getComment(commentId);
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      final comment = await remoteDataSource.getComment(
+          site.url, site.apiKey, commentId);
+      return Right(comment);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to fetch comment $commentId: ${e.toString()}');
+      return Left(ServerFailure(message: 'Failed to get comment'));
     }
   }
 
   @override
-  Future<void> deleteComment(String siteId, int commentId) async {
+  Future<Either<Failure, List<CommentEntity>>> getComments(String siteId,
+      {int page = 1, int perPage = 10}) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      await dataSource.deleteComment(commentId);
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      final comments = await remoteDataSource.getComments(site.url, site.apiKey,
+          page: page, perPage: perPage);
+      return Right(comments);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to delete comment $commentId: ${e.toString()}');
+      return Left(ServerFailure(message: 'Failed to get comments'));
     }
   }
 
   @override
-  Future<CommentEntity> updateComment(String siteId, CommentEntity comment) async {
+  Future<Either<Failure, List<CommentEntity>>> getPendingComments(
+      String siteId) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      return await dataSource.updateComment(comment);
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      final comments =
+          await remoteDataSource.getPendingComments(site.url, site.apiKey);
+      return Right(comments);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to update comment ${comment.id}: ${e.toString()}');
+      return Left(ServerFailure(message: 'Failed to get pending comments'));
     }
   }
 
   @override
-  Future<void> approveComment(String siteId, int commentId) async {
+  Future<Either<Failure, int>> getPendingCommentsCount(String siteId) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      await dataSource.approveComment(commentId);
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      final count = await remoteDataSource.getPendingCommentsCount(
+          site.url, site.apiKey);
+      return Right(count);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to approve comment $commentId: ${e.toString()}');
+      return Left(
+          ServerFailure(message: 'Failed to get pending comments count'));
     }
   }
 
   @override
-  Future<List<CommentEntity>> getPendingComments(String siteId) async {
+  Future<Either<Failure, void>> spamComment(String siteId, int commentId) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      return await dataSource.getPendingComments();
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      await remoteDataSource.spamComment(site.url, site.apiKey, commentId);
+      return const Right(null);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to get pending comments: ${e.toString()}');
+      return Left(ServerFailure(message: 'Failed to spam comment'));
     }
   }
 
   @override
-  Future<int> getPendingCommentsCount(String siteId) async {
+  Future<Either<Failure, CommentEntity>> updateComment(
+      String siteId, CommentEntity comment) async {
     try {
-      final dataSource = await _getDataSource(siteId);
-      return await dataSource.getPendingCommentsCount();
-    } on UseCaseException {
-      rethrow;
+      final site = await siteLocalDataSource.getSiteById(siteId);
+      if (site == null) {
+        return Left(CacheFailure(message: 'Site not found'));
+      }
+      final updatedComment = await remoteDataSource.updateComment(
+          site.url, site.apiKey, comment);
+      return Right(updatedComment);
     } catch (e) {
-      throw UseCaseException(message: 'Failed to get pending comments count: ${e.toString()}');
-    }
-  }
-
-  @override
-  Future<void> spamComment(String siteId, int commentId) async {
-    try {
-      final dataSource = await _getDataSource(siteId);
-      await dataSource.spamComment(commentId);
-    } on UseCaseException {
-      rethrow;
-    } catch (e) {
-      throw UseCaseException(message: 'Failed to spam comment $commentId: ${e.toString()}');
+      return Left(ServerFailure(message: 'Failed to update comment'));
     }
   }
 }

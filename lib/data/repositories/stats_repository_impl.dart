@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 
+import 'package:wp_commander/core/errors/failures.dart';
+import 'package:either_dart/either.dart';
 import '../../domain/repositories/stats_repository.dart';
 import '../../domain/entities/stats_entity.dart';
 import '../datasources/remote/wp_api_datasource.dart';
@@ -8,8 +10,6 @@ import '../datasources/local/cache_manager.dart';
 import '../adapters/api_adapter.dart';
 import '../models/api/wp_stats_model.dart';
 import '../../domain/entities/site_entity.dart';
-import '../../core/errors/exceptions.dart';
-import 'package:wp_commander/data/repositories/site_repository_impl.dart';
 import '../../core/providers/repository_providers.dart';
 
 class StatsRepositoryImpl implements StatsRepository {
@@ -18,15 +18,22 @@ class StatsRepositoryImpl implements StatsRepository {
   StatsRepositoryImpl(this.ref);
 
   Future<SiteEntity> _getSiteById(String siteId) async {
-    final site = await ref.read(siteRepositoryProvider).getSiteById(siteId);
-    if (site == null) {
-      throw UseCaseException(message: "Site not found: $siteId");
-    }
-    return site;
+    final siteEither = await ref.read(siteRepositoryProvider).getSiteById(siteId);
+
+    return siteEither.fold(
+      (failure) =>
+          throw Exception("Site not found: $siteId"),
+      (site) {
+        if (site == null) {
+          throw Exception("Site not found: $siteId");
+        }
+        return site;
+      },
+    );
   }
 
   @override
-  Future<StatsEntity> getStats(String siteId) async {
+  Future<Either<Failure, StatsEntity>> getStats(String siteId) async {
     try {
       final site = await _getSiteById(siteId);
 
@@ -45,46 +52,39 @@ class StatsRepositoryImpl implements StatsRepository {
         siteId: siteId,
       );
 
-      return statsEntity;
+      return Right(statsEntity);
     } catch (e) {
-      if (e is UseCaseException) {
-        rethrow;
-      }
       try {
-        final cachedStats = await getCachedStats(siteId);
-        if (cachedStats != StatsEntity.empty()) {
-          return cachedStats;
-        }
-      } catch (_) {
-        //  If cache also fails, throw the original error
+        return await getCachedStats(siteId);
+      } catch (e) {
+        return Left(CacheFailure(message: e.toString()));
       }
-      throw UseCaseException(
-        message: 'Failed to get dashboard stats: ${e.toString()}',
-      );
     }
   }
 
   @override
-  Future<StatsEntity> getCachedStats(String siteId) async {
+  Future<Either<Failure, StatsEntity>> getCachedStats(String siteId) async {
     try {
       final cachedData = await CacheManager.getValidData('stats_$siteId');
       if (cachedData != null) {
         final statsModel = WPStatsModel.fromJson(jsonDecode(cachedData));
-        return ApiAdapter.statsModelToEntity(statsModel);
+        return Right(ApiAdapter.statsModelToEntity(statsModel));
       }
-      return StatsEntity.empty();
+      return Right(StatsEntity.empty());
     } catch (e) {
-      return StatsEntity.empty();
+      return Left(CacheFailure(message: e.toString()));
     }
   }
 
   @override
-  Future<void> refreshStats(String siteId) async {
-    await getStats(siteId);
+  Future<Either<Failure, void>> refreshStats(String siteId) async {
+    final result = await getStats(siteId);
+    return result.isRight ? const Right(null) : Left(result.left);
   }
 
   @override
-  Future<Map<String, dynamic>> getAdvancedAnalytics(String siteId) async {
+  Future<Either<Failure, Map<String, dynamic>>> getAdvancedAnalytics(
+      String siteId) async {
     try {
       final site = await _getSiteById(siteId);
       final apiDataSource = WPApiDataSource(
@@ -92,32 +92,29 @@ class StatsRepositoryImpl implements StatsRepository {
         apiKey: site.apiKey,
       );
 
-      return {
+      return Right({
         'traffic_sources': await _getTrafficSources(apiDataSource),
         'popular_content': await _getPopularContent(apiDataSource),
         'user_engagement': await _getUserEngagement(apiDataSource),
-      };
+      });
     } catch (e) {
-       if (e is UseCaseException) {
-        rethrow;
-      }
-      throw UseCaseException(
+      return Left(ServerFailure(
         message: 'Failed to get advanced analytics: ${e.toString()}',
-      );
+      ));
     }
   }
 
   @override
-  Future<bool> areStatsStale(String siteId) async {
+  Future<Either<Failure, bool>> areStatsStale(String siteId) async {
     final cachedItem = await CacheManager.get('stats_$siteId');
-    if (cachedItem == null) return true;
+    if (cachedItem == null) return const Right(true);
 
     try {
-        final timestamp = DateTime.parse(cachedItem['timestamp']);
-        const expiry = Duration(minutes: 15);
-        return DateTime.now().difference(timestamp) > expiry;
+      final timestamp = DateTime.parse(cachedItem['timestamp']);
+      const expiry = Duration(minutes: 15);
+      return Right(DateTime.now().difference(timestamp) > expiry);
     } catch (e) {
-        return true;
+      return const Right(true);
     }
   }
 

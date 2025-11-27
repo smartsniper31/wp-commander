@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
-import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
-import 'package:wp_commander/presentation/notifiers/sites_state.dart';
+import 'package:wp_commander/presentation/providers/site/site_list_provider.dart';
 import 'package:wp_commander/presentation/pages/sites/add_site_page.dart';
 import 'package:wp_commander/presentation/pages/sites/site_detail_page.dart';
 import 'package:wp_commander/presentation/widgets/common/empty_state_widget.dart';
@@ -41,18 +40,16 @@ class SitesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: switch (sitesState) {
-        SitesInitial() ||
-        SitesLoading() =>
-          const LoadingIndicator(message: 'Chargement des sites...'),
-        SitesLoaded(sites: final sites) =>
-          _buildSitesList(context, sites, ref),
-        SitesError(message: final message) => ErrorRetryWidget(
-            message: 'Impossible de charger les sites.',
-            details: message,
-            onRetry: () => ref.read(sitesProvider.notifier).loadSites(),
-          ),
-      },
+      body: sitesState.when(
+        initial: () => const LoadingIndicator(message: 'Chargement des sites...'),
+        loading: () => const LoadingIndicator(message: 'Chargement des sites...'),
+        loaded: (sites) => _buildSitesList(context, sites, ref),
+        error: (message) => ErrorRetryWidget(
+          title: 'Impossible de charger les sites.',
+          description: message,
+          onRetry: () => ref.read(sitesProvider.notifier).fetchSites(), message: '',
+        ),
+      ),
     );
   }
 
@@ -60,16 +57,17 @@ class SitesScreen extends ConsumerWidget {
       BuildContext context, List<SiteEntity> sites, WidgetRef ref) {
     if (sites.isEmpty) {
       return EmptyStateWidget(
-        message: 'Aucun site pour le moment.',
-        details:
+        title: 'Aucun site pour le moment.',
+        description:
             'Ajoutez votre premier site pour commencer à gérer votre WordPress.',
         icon: Icons.add_to_photos_outlined,
-        onAction: () => _navigateToAddSite(context),
+        buttonText: 'Ajouter un site',
+        onButtonPressed: () => _navigateToAddSite(context),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref.read(sitesProvider.notifier).loadSites(),
+      onRefresh: () => ref.read(sitesProvider.notifier).fetchSites(),
       child: ListView.builder(
         itemCount: sites.length,
         itemBuilder: (context, index) {

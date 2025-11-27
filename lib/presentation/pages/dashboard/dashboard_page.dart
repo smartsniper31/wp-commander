@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
-import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 import 'package:wp_commander/presentation/widgets/animations/fade_in_animation.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -26,11 +25,10 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: switch (sitesState) {
-        SitesInitial() ||
-        SitesLoading() =>
-          const Center(child: CircularProgressIndicator()),
-        SitesLoaded(sites: final sites) => sites.isEmpty
+      body: sitesState.when(
+        initial: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        loaded: (sites) => sites.isEmpty
             ? FadeInAnimation(
                 child: Center(
                   child: Padding(
@@ -57,7 +55,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
               )
             : RefreshIndicator(
-                onRefresh: () => ref.read(sitesProvider.notifier).loadSites(),
+                onRefresh: () => ref.read(sitesProvider.notifier).fetchSites(),
                 child: ListView.builder(
                   itemCount: sites.length,
                   itemBuilder: (context, index) {
@@ -72,10 +70,10 @@ class DashboardPage extends ConsumerWidget {
                   },
                 ),
               ),
-        SitesError() => Center(
-            child: Text(l10n.translate('dashboard.loading_error')),
-          ),
-      },
+        error: (message) => Center(
+          child: Text(l10n.translate('dashboard.loading_error')),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.go('/add-site');

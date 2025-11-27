@@ -3,8 +3,6 @@ import 'dart:convert';
 
 import '../../models/api/wp_health_model.dart';
 import '../../models/api/wp_stats_model.dart';
-import '../../../core/errors/exceptions.dart';
-import '../../models/comment_model.dart';
 import '../../../domain/entities/comment_entity.dart';
 
 class WPApiDataSource {
@@ -39,7 +37,7 @@ class WPApiDataSource {
     if (response.statusCode == 200) {
       return WPStatsModel.fromJson(json.decode(response.body));
     } else {
-      throw ServerException();
+      throw Exception('Failed to get dashboard stats');
     }
   }
 
@@ -51,7 +49,7 @@ class WPApiDataSource {
     if (response.statusCode == 200) {
       return WPHealthModel.fromJson(json.decode(response.body));
     } else {
-      throw ServerException();
+      throw Exception('Failed to get site health');
     }
   }
 
@@ -67,7 +65,7 @@ class WPApiDataSource {
     }
   }
 
-  Future<List<CommentModel>> getComments({int page = 1, int perPage = 10}) async {
+  Future<List<CommentEntity>> getComments({int page = 1, int perPage = 10}) async {
     final response = await client.get(
       _buildUrl('comments', queryParams: {
         'page': page.toString(),
@@ -78,21 +76,21 @@ class WPApiDataSource {
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
-      return jsonList.map((json) => CommentModel.fromJson(json)).toList();
+      return jsonList.map((json) => CommentEntity.fromJson(json)).toList();
     } else {
-      throw ServerException();
+      throw Exception('Failed to get comments');
     }
   }
 
-  Future<CommentModel> getComment(int commentId) async {
+  Future<CommentEntity> getComment(int commentId) async {
     final response = await client.get(
       _buildUrl('comments/$commentId'),
       headers: _getHeaders(),
     );
     if (response.statusCode == 200) {
-      return CommentModel.fromJson(json.decode(response.body));
+      return CommentEntity.fromJson(json.decode(response.body));
     } else {
-      throw ServerException();
+      throw Exception('Failed to get comment');
     }
   }
 
@@ -104,7 +102,7 @@ class WPApiDataSource {
     return response.statusCode == 200;
   }
 
-  Future<CommentModel> updateComment(CommentEntity comment) async {
+  Future<CommentEntity> updateComment(CommentEntity comment) async {
     final response = await client.put(
       _buildUrl('comments/${comment.id}'),
       headers: _getHeaders(),
@@ -115,9 +113,9 @@ class WPApiDataSource {
     );
 
     if (response.statusCode == 200) {
-      return CommentModel.fromJson(json.decode(response.body));
+      return CommentEntity.fromJson(json.decode(response.body));
     } else {
-      throw ServerException();
+      throw Exception('Failed to update comment');
     }
   }
 
@@ -129,16 +127,16 @@ class WPApiDataSource {
     return response.statusCode == 200;
   }
 
-  Future<List<CommentModel>> getPendingComments() async {
+  Future<List<CommentEntity>> getPendingComments() async {
     final response = await client.get(
       _buildUrl('comments/pending'),
       headers: _getHeaders(),
     );
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
-      return jsonList.map((json) => CommentModel.fromJson(json)).toList();
+      return jsonList.map((json) => CommentEntity.fromJson(json)).toList();
     } else {
-      throw ServerException();
+      throw Exception('Failed to get pending comments');
     }
   }
 
@@ -152,7 +150,7 @@ class WPApiDataSource {
       final data = json.decode(response.body);
       return data['count'] ?? 0;
     } else {
-      throw ServerException();
+      throw Exception('Failed to get pending comments count');
     }
   }
 

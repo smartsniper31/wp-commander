@@ -12,7 +12,7 @@ class ErrorRetryWidget extends ConsumerWidget {
     required this.message,
     this.details,
     required this.onRetry,
-    this.retryText = 'Réessayer',
+    this.retryText = 'Réessayer', required String title, required String description,
   });
 
   @override
@@ -75,7 +75,7 @@ class ErrorActionsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     
     return AlertDialog(
       title: Text(title),

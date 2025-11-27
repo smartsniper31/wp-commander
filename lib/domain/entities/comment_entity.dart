@@ -1,44 +1,24 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class CommentEntity extends Equatable {
-  final int id;
-  final String authorName;
-  final String authorEmail;
-  final String authorAvatar;
-  final String content;
-  final DateTime date;
-  final String status;
-  final String postTitle;
-  final int postId;
-  final String authorIp;
-  final String authorUrl;
+part 'comment_entity.freezed.dart';
+part 'comment_entity.g.dart';
 
-  const CommentEntity({
-    required this.id,
-    required this.authorName,
-    required this.authorEmail,
-    required this.authorAvatar,
-    required this.content,
-    required this.date,
-    required this.status,
-    required this.postTitle,
-    required this.postId,
-    required this.authorIp,
-    required this.authorUrl,
-  });
+@freezed
+class CommentEntity with _$CommentEntity {
+  const factory CommentEntity({
+    required int id,
+    required String authorName,
+    required String authorEmail,
+    required String authorAvatar,
+    required String content,
+    required DateTime date,
+    required String status,
+    required String postTitle,
+    required int postId,
+    required String authorIp,
+    required String authorUrl,
+  }) = _CommentEntity;
 
-  @override
-  List<Object?> get props => [
-        id,
-        authorName,
-        authorEmail,
-        authorAvatar,
-        content,
-        date,
-        status,
-        postTitle,
-        postId,
-        authorIp,
-        authorUrl,
-      ];
+  factory CommentEntity.fromJson(Map<String, dynamic> json) =>
+      _$CommentEntityFromJson(json);
 }

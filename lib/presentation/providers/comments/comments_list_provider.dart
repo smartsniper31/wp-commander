@@ -1,10 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../domain/entities/comment_entity.dart';
-import '../../../../domain/usecases/comments/approve_comment.dart';
-import '../../../../domain/usecases/comments/delete_comment.dart';
-import '../../../../domain/usecases/comments/get_all_comments_usecase.dart';
-import '../../../core/providers/usecase_providers.dart';
+import 'package:wp_commander/domain/entities/comment_entity.dart';
+import 'package:wp_commander/domain/usecases/comments/approve_comment.dart';
+import 'package:wp_commander/domain/usecases/comments/delete_comment.dart';
+import 'package:wp_commander/domain/usecases/comments/get_all_comments_usecase.dart';
+import 'package:wp_commander/core/providers/usecase_providers.dart';
 
 // État pour la liste des commentaires
 class CommentsListState {
@@ -121,7 +120,7 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
     state = state.copyWith(comments: updatedComments);
 
     try {
-      await _approveCommentUseCase(siteId, commentId);
+      await _approveCommentUseCase.execute(siteId, commentId);
     } catch (e) {
       state = state.copyWith(
         comments: originalComments, // Revert on error
@@ -137,7 +136,7 @@ class CommentsListNotifier extends StateNotifier<CommentsListState> {
     state = state.copyWith(comments: updatedComments);
 
     try {
-      await _deleteCommentUseCase(siteId, commentId);
+      await _deleteCommentUseCase.execute(siteId, commentId);
     } catch (e) {
       state = state.copyWith(
         comments: originalComments, // Revert on error

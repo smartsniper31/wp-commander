@@ -14,7 +14,7 @@ class DashboardView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       itemCount: sites.length,
       itemBuilder: (context, index) {
-        return SiteCard(site: sites[index], index: index);
+        return SiteCard(site: sites[index]);
       },
     );
   }

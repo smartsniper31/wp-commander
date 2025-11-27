@@ -8,6 +8,7 @@ import '../models/site_model.dart';
 abstract class SiteRemoteDataSource {
   Future<SiteModel> getSite(String url);
   Future<SiteModel> addSite(String url, String apiKey);
+  Future<bool> validateConnection(String url, String apiKey);
 }
 
 class SiteRemoteDataSourceImpl implements SiteRemoteDataSource {
@@ -30,5 +31,21 @@ class SiteRemoteDataSourceImpl implements SiteRemoteDataSource {
   Future<SiteModel> addSite(String url, String apiKey) async {
     // TODO: implement addSite
     throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> validateConnection(String url, String apiKey) async {
+    try {
+      final response = await client.get(
+        Uri.parse('$url/wp-json/wp-commander/v1/connection/validate'),
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 }

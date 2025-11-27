@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:wp_commander/domain/entities/site_entity.dart';
 
 import '../repositories/site_repository.dart';
 import '../repositories/stats_repository.dart';
@@ -52,39 +51,27 @@ class SyncService {
     }
   }
 
-  // Synchronisation de tous les sites
   Future<BatchSyncResult> syncAllSites() async {
-    final sitesEither = await siteRepository.getSites();
+    final sites = await siteRepository.getSites();
 
-    return sitesEither.fold(
-      (failure) => BatchSyncResult(
-        total: 0,
-        successful: 0,
-        failed: 0,
-        results: [],
-        timestamp: DateTime.now(),
-      ) as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult> as FutureOr<BatchSyncResult>,
-      (sites) async {
-        final results = <SyncResult>[];
-        for (final site in sites) {
-          final result = await syncSite(site.id);
-          results.add(result);
+    final results = <SyncResult>[];
+    sites.fold((l) => null, (r) async {
+      for (final site in r) {
+        final result = await syncSite(site.id);
+        results.add(result);
+        await Future.delayed(const Duration(seconds: 1));
+      }
+    });
 
-          // Petit délai entre chaque synchronisation
-          await Future.delayed(const Duration(seconds: 1));
-        }
+    final successful = results.where((r) => r.success).length;
+    final failed = results.length - successful;
 
-        final successful = results.where((r) => r.success).length;
-        final failed = results.length - successful;
-
-        return BatchSyncResult(
-          total: results.length,
-          successful: successful,
-          failed: failed,
-          results: results,
-          timestamp: DateTime.now(),
-        );
-      } as FutureOr<BatchSyncResult> Function(FutureOr<BatchSyncResult> previousValue, SiteEntity element),
+    return BatchSyncResult(
+      total: results.length,
+      successful: successful,
+      failed: failed,
+      results: results,
+      timestamp: DateTime.now(),
     );
   }
 
@@ -109,7 +96,7 @@ class SyncService {
   Future<bool> _needsSync(String siteId) async {
     // Vérifier si les stats sont périmées
     final statsStale = await statsRepository.areStatsStale(siteId);
-    if (statsStale) return true;
+    if (statsStale.fold((l) => false, (r) => r)) return true;
 
     // Vérifier si la santé du site est périmée
     // Implémenter similar logic for health checks

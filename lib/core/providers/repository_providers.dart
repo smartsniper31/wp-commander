@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:wp_commander/data/datasources/comments_remote_datasource.dart';
 import 'package:wp_commander/data/datasources/local/site_local_datasource_impl.dart';
 import 'package:wp_commander/data/datasources/site_remote_datasource.dart';
 
@@ -20,7 +21,10 @@ final siteRepositoryProvider = Provider<SiteRepository>((ref) {
 });
 
 final commentsRepositoryProvider = Provider<CommentsRepository>((ref) {
-  return CommentsRepositoryImpl(ref);
+  return CommentsRepositoryImpl(
+    remoteDataSource: CommentsRemoteDataSourceImpl(),
+    siteLocalDataSource: SiteLocalDataSourceImpl(),
+  );
 });
 
 final healthRepositoryProvider = Provider<HealthRepository>((ref) {

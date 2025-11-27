@@ -1,6 +1,6 @@
+import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wp_commander/core/errors/exceptions.dart';
-import 'package:wp_commander/data/repositories/site_repository_impl.dart';
+import 'package:wp_commander/core/errors/failures.dart';
 import 'package:wp_commander/core/providers/repository_providers.dart';
 
 import '../../entities/site_entity.dart';
@@ -11,9 +11,9 @@ class AddSiteUseCase {
 
   AddSiteUseCase(this._repository);
 
-  Future<SiteEntity> execute(AddSiteParams params) async {
+  Future<Either<Failure, SiteEntity>> execute(AddSiteParams params) async {
     if (params.name.isEmpty || params.url.isEmpty || params.apiKey.isEmpty) {
-      throw UseCaseException(message: 'Tous les champs sont obligatoires');
+      return Left(ValidationFailure(message: 'Tous les champs sont obligatoires'));
     }
 
     final site = SiteEntity(
@@ -24,13 +24,7 @@ class AddSiteUseCase {
       createdAt: DateTime.now(),
     );
 
-    try {
-      return await _repository.addSite(site);
-    } on RepositoryException {
-      rethrow;
-    } catch (e) {
-      throw UseCaseException(message: e.toString());
-    }
+    return _repository.addSite(site);
   }
 }
 

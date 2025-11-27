@@ -32,8 +32,7 @@ final healthRemoteDataSourceProvider = Provider<HealthRemoteDataSource>((ref) {
 });
 
 final commentsRemoteDataSourceProvider = Provider<CommentsRemoteDataSource>((ref) {
-  final client = ref.watch(httpClientProvider);
-  return CommentsRemoteDataSourceImpl(client: client);
+  return CommentsRemoteDataSourceImpl();
 });
 
 // Fournisseur pour la source de données locale de sites

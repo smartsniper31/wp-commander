@@ -9,11 +9,14 @@ abstract class Failure extends Equatable {
   List<Object> get props => [message];
 }
 
-// General failures
+class ValidationFailure extends Failure {
+  const ValidationFailure({required super.message});
+}
+
 class ServerFailure extends Failure {
-  ServerFailure(String s, {required String message}) : super(message: message);
+  const ServerFailure({required super.message});
 }
 
 class CacheFailure extends Failure {
-  CacheFailure({required String message}) : super(message: message);
+  const CacheFailure({required super.message});
 }

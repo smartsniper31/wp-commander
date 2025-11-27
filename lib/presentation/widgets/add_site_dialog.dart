@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
 
 import '../../domain/entities/site_entity.dart';
 import '../notifiers/sites_notifier.dart';
@@ -71,7 +72,7 @@ class AddSiteDialog extends ConsumerWidget {
                 apiKey: _apiKeyController.text,
                 createdAt: DateTime.now(),
               );
-              ref.read(sitesNotifierProvider.notifier).addSite(site);
+              ref.read(sitesNotifierProvider.notifier).addSite(AddSiteParams(site: site));
               Navigator.of(context).pop();
             }
           },

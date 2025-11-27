@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
+import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
 import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 
@@ -20,27 +21,35 @@ class AddSitePage extends ConsumerWidget {
     final formNotifier = ref.read(siteFormProvider.notifier);
     final sitesState = ref.watch(sitesProvider);
 
-    // Listen for state changes to handle side-effects
     ref.listen<SitesState>(
       sitesProvider,
       (previous, next) {
-        // We only want to react when the submission process is finished.
-        final wasSubmitting = previous is SitesLoading;
+        final wasSubmitting = previous?.maybeWhen(
+              loading: () => true,
+              orElse: () => false,
+            ) ??
+            false;
 
         if (wasSubmitting) {
-          if (next is SitesLoaded) {
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Site ajouté avec succès!')),
-            );
-            formNotifier.reset();
-            Navigator.of(context).pop();
-          } else if (next is SitesError) {
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(next.message)),
-            );
-          }
+          next.maybeWhen(
+            loaded: (_) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Site ajouté avec succès!')),
+              );
+              formNotifier.reset();
+              Navigator.of(context).pop();
+            },
+            error: (message) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            },
+            orElse: () {
+              // Do nothing while still loading or in other states
+            },
+          );
         }
       },
     );
@@ -71,18 +80,21 @@ class AddSitePage extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: AnimatedButton(
-                onPressed: sitesState is SitesLoading
+                onPressed: sitesState.maybeWhen(
+                  loading: () => true,
+                  orElse: () => false,
+                )
                     ? null
                     : () {
                         if (formNotifier.validate()) {
                           final site = SiteEntity(
-                            id: '', // Will be replaced by repository
+                            id: '',
                             name: formState.name,
                             url: formState.url,
                             apiKey: formState.apiKey,
                             createdAt: DateTime.now(),
                           );
-                          ref.read(sitesProvider.notifier).addSite(site);
+                          ref.read(sitesProvider.notifier).addSite(AddSiteParams(name: site.name, url: site.url, apiKey: site.apiKey));
                         }
                       },
                 child: const Text('Ajouter le site'),

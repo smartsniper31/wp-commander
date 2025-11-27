@@ -14,7 +14,7 @@ class EmptyStateWidget extends ConsumerWidget {
     required this.description,
     this.assetPath,
     this.icon,
-    this.actions = const [],
+    this.actions = const [], required String buttonText, required void Function() onButtonPressed,
   });
 
   @override

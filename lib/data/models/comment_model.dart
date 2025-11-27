@@ -1,18 +1,28 @@
-import '../../../domain/entities/comment_entity.dart';
+class CommentModel {
+  final int id;
+  final String authorName;
+  final String authorEmail;
+  final String authorAvatar;
+  final String content;
+  final DateTime date;
+  final String status;
+  final String postTitle;
+  final int postId;
+  final String authorIp;
+  final String authorUrl;
 
-class CommentModel extends CommentEntity {
   const CommentModel({
-    required super.id,
-    required super.authorName,
-    required super.authorEmail,
-    required super.authorAvatar,
-    required super.content,
-    required super.date,
-    required super.status,
-    required super.postTitle,
-    required super.postId,
-    required super.authorIp,
-    required super.authorUrl,
+    required this.id,
+    required this.authorName,
+    required this.authorEmail,
+    required this.authorAvatar,
+    required this.content,
+    required this.date,
+    required this.status,
+    required this.postTitle,
+    required this.postId,
+    required this.authorIp,
+    required this.authorUrl,
   });
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
@@ -29,17 +39,5 @@ class CommentModel extends CommentEntity {
       authorIp: json['author_ip'] ?? '',
       authorUrl: json['author_url'] ?? '',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'author_name': authorName,
-      'author_email': authorEmail,
-      'content': {'rendered': content},
-      'date': date.toIso8601String(),
-      'status': status,
-      'post': postId,
-    };
   }
 }

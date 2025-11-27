@@ -19,10 +19,17 @@ class GetStatsUseCase {
         );
       }
 
-      return await _repository.getStats(siteId);
+      final result = await _repository.getStats(siteId);
+      return result.fold(
+        (failure) => throw UseCaseException(message: failure.message),
+        (stats) => stats,
+      );
     } on RepositoryException {
       rethrow;
     } catch (e) {
+      if (e is UseCaseException) {
+        rethrow;
+      }
       throw UseCaseException(message: e.toString());
     }
   }

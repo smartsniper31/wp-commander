@@ -1,7 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../core/errors/exceptions.dart';
-import '../../../core/providers/repository_providers.dart';
+import 'package:either_dart/either.dart';
+import 'package:wp_commander/core/errors/failures.dart';
 import '../../entities/comment_entity.dart';
 import '../../repositories/comments_repository.dart';
 
@@ -10,23 +8,13 @@ class FetchCommentsUseCase {
 
   FetchCommentsUseCase(this._repository);
 
-  Future<List<CommentEntity>> execute(FetchCommentsParams params) async {
-    try {
-      if (params.status == 'pending') {
-        return await _repository.getPendingComments(params.siteId);
-      }
-      return await _repository.getComments(params.siteId, page: params.page, perPage: params.perPage);
-    } on UseCaseException {
-      rethrow;
-    } catch (e) {
-      throw UseCaseException(message: e.toString());
+  Future<Either<Failure, List<CommentEntity>>> execute(FetchCommentsParams params) async {
+    if (params.status == 'pending') {
+      return _repository.getPendingComments(params.siteId);
     }
+    return _repository.getComments(params.siteId, page: params.page, perPage: params.perPage);
   }
 }
-
-final fetchCommentsUseCaseProvider = Provider<FetchCommentsUseCase>((ref) {
-  return FetchCommentsUseCase(ref.read(commentsRepositoryProvider));
-});
 
 class FetchCommentsParams {
   final String siteId;

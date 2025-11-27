@@ -1,6 +1,6 @@
+import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wp_commander/core/errors/exceptions.dart';
-import 'package:wp_commander/data/repositories/site_repository_impl.dart';
+import 'package:wp_commander/core/errors/failures.dart';
 import 'package:wp_commander/core/providers/repository_providers.dart';
 
 import '../../entities/site_entity.dart';
@@ -11,14 +11,8 @@ class GetSitesUseCase {
 
   GetSitesUseCase(this._repository);
 
-  Future<List<SiteEntity>> execute() async {
-    try {
-      return await _repository.getSites();
-    } on RepositoryException {
-      rethrow;
-    } catch (e) {
-      throw UseCaseException(message: e.toString());
-    }
+  Future<Either<Failure, List<SiteEntity>>> execute() async {
+    return _repository.getSites();
   }
 }
 

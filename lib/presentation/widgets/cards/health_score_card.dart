@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'health_score_chart.dart';
+import 'package:wp_commander/presentation/widgets/charts/health_score_chart.dart';
 
 class HealthScoreCard extends StatelessWidget {
   final int score;

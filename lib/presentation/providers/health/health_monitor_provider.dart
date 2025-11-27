@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../domain/entities/health_entity.dart';
-import '../../../../domain/usecases/health/check_site_health_usecase.dart';
-import '../../../core/providers/usecase_providers.dart';
+import 'package:wp_commander/domain/entities/health_entity.dart';
+import 'package:wp_commander/domain/usecases/health/check_site_health_usecase.dart';
+import 'package:wp_commander/core/providers/usecase_providers.dart';
 
 // État pour le monitoring de santé
 class HealthMonitorState {

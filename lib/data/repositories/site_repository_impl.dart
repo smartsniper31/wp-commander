@@ -1,9 +1,9 @@
+import 'package:either_dart/either.dart';
+import 'package:wp_commander/core/errors/failures.dart';
 import 'package:wp_commander/data/datasources/site_remote_datasource.dart';
-import '../../core/errors/exceptions.dart';
 import '../../domain/entities/site_entity.dart';
 import '../../domain/repositories/site_repository.dart';
 import '../datasources/local/site_local_datasource.dart';
-import '../datasources/remote/wp_api_datasource.dart';
 import '../models/site_model.dart';
 
 class SiteRepositoryImpl implements SiteRepository {
@@ -16,75 +16,71 @@ class SiteRepositoryImpl implements SiteRepository {
   });
 
   @override
-  Future<SiteEntity> addSite(SiteEntity site) async {
+  Future<Either<Failure, SiteEntity>> addSite(SiteEntity site) async {
     try {
-      final remoteApi = WPApiDataSource(baseUrl: site.url, apiKey: site.apiKey);
-      final isValid = await remoteApi.validateConnection();
+      final isValid = await remoteDataSource.validateConnection(site.url, site.apiKey);
 
       if (isValid) {
         final newSite = await localDataSource.addSite(SiteModel.fromEntity(site));
-        return newSite;
+        return Right(newSite);
       } else {
-        throw ServerException(message: 'Validation failed');
+        return Left(ServerFailure(message: 'Validation failed'));
       }
-    } on ServerException catch (e) {
-      // Re-throw as a domain-specific exception if needed, or handle here.
-      throw UseCaseException(message: 'Server error during site addition: ${e.message}');
-    } on CacheException {
-      throw UseCaseException(message: 'An unknown cache error occurred');
+    } catch (e) {
+      return Left(ServerFailure(message: 'An error occurred while adding the site.'));
     }
   }
 
   @override
-  Future<void> deleteSite(String id) async {
+  Future<Either<Failure, void>> deleteSite(String id) async {
     try {
       await localDataSource.deleteSite(id);
-    } on CacheException {
-      throw UseCaseException(message: 'An unknown cache error occurred');
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure(message: 'An error occurred while deleting the site.'));
     }
   }
 
   @override
-  Future<List<SiteEntity>> getSites() async {
+  Future<Either<Failure, List<SiteEntity>>> getSites() async {
     try {
       final sites = await localDataSource.getSites();
-      return sites;
-    } on CacheException {
-      throw UseCaseException(message: 'An unknown cache error occurred');
+      return Right(sites);
+    } catch (e) {
+      return Left(CacheFailure(message: 'An error occurred while fetching sites.'));
     }
   }
 
   @override
-  Future<SiteEntity?> getSiteById(String id) async {
+  Future<Either<Failure, SiteEntity?>> getSiteById(String id) async {
     try {
-      return await localDataSource.getSiteById(id);
-    } on CacheException {
-      throw UseCaseException(message: 'An unknown cache error occurred');
+      final site = await localDataSource.getSiteById(id);
+      return Right(site);
+    } catch (e) {
+      return Left(CacheFailure(message: 'An error occurred while fetching the site.'));
     }
   }
 
   @override
-  Future<void> updateSite(SiteEntity site) async {
+  Future<Either<Failure, void>> updateSite(SiteEntity site) async {
     try {
       await localDataSource.updateSite(SiteModel.fromEntity(site));
-    } on CacheException {
-      throw UseCaseException(message: 'An unknown cache error occurred');
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure(message: 'An error occurred while updating the site.'));
     }
   }
 
   @override
-  Future<bool> validateApiKey({
+  Future<Either<Failure, bool>> validateApiKey({
     required String url,
     required String apiKey,
   }) async {
     try {
-      final remoteApi = WPApiDataSource(baseUrl: url, apiKey: apiKey);
-      return await remoteApi.validateConnection();
-    } on ServerException {
-      // In validation, we might just return false instead of throwing.
-      return false;
+      final result = await remoteDataSource.validateConnection(url, apiKey);
+      return Right(result);
+    } catch (e) {
+      return Left(ServerFailure(message: "Validation failed"));
     }
   }
 }
-
-// We need a fromEntity method in SiteModel

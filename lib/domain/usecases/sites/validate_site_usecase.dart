@@ -11,10 +11,11 @@ class ValidateSiteUseCase {
 
   Future<bool> execute(ValidateSiteParams params) async {
     try {
-      return await _repository.validateApiKey(
+      final result = await _repository.validateApiKey(
         url: params.url,
         apiKey: params.apiKey,
       );
+      return result.fold((l) => false, (r) => r);
     } on RepositoryException {
       rethrow;
     } catch (e) {

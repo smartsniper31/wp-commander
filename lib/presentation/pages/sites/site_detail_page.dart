@@ -24,7 +24,7 @@ class SiteDetailPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () {
-              ref.read(sitesProvider.notifier).syncSite(siteId);
+              ref.read(sitesProvider.notifier).fetchSites();
             },
           ),
           IconButton(

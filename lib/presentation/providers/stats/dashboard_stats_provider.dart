@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../domain/entities/stats_entity.dart';
-import '../../../../domain/usecases/stats/get_dashboard_stats_usecase.dart';
-import '../../../core/providers/usecase_providers.dart';
+import 'package:wp_commander/domain/entities/stats_entity.dart';
+import 'package:wp_commander/domain/usecases/stats/get_dashboard_stats_usecase.dart';
+import 'package:wp_commander/core/providers/usecase_providers.dart';
 
 // État pour les statistiques du dashboard
 class DashboardStatsState {
