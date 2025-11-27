@@ -161,7 +161,7 @@ final commentsListProvider = StateNotifierProvider.family<
   return CommentsListNotifier(
     siteId: siteId,
     getAllCommentsUseCase: ref.watch(getAllCommentsUseCaseProvider),
-    approveCommentUseCase: ref.watch(approveCommentUseCaseProvider),
-    deleteCommentUseCase: ref.watch(deleteCommentUseCaseProvider),
+    approveCommentUseCase: ref.watch(approveCommentUseCaseProvider as ProviderListenable<ApproveCommentUseCase>),
+    deleteCommentUseCase: ref.watch(deleteCommentUseCaseProvider as ProviderListenable<DeleteCommentUseCase>),
   );
 });

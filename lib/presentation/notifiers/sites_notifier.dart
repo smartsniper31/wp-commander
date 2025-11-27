@@ -42,4 +42,6 @@ class SitesNotifier extends StateNotifier<SitesState> {
       (_) => fetchSites(), // Refresh the list after deleting
     );
   }
+
+  void syncSite(String id) {}
 }

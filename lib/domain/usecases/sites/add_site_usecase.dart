@@ -41,6 +41,6 @@ class AddSiteParams {
   AddSiteParams({
     required this.name,
     required this.url,
-    required this.apiKey,
+    required this.apiKey, required SiteEntity site,
   });
 }

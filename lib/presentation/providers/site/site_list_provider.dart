@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
-import 'package:wp_commander/domain/usecases/sites/delete_site_usecase.dart';
+import 'package:wp_commander/domain/usecases/sites/delete_site_usecase.dart' hide deleteSiteUseCaseProvider;
 import 'package:wp_commander/domain/usecases/sites/get_sites_usecase.dart';
-import 'package:wp_commander/domain/usecases/sites/update_site_usecase.dart';
+import 'package:wp_commander/domain/usecases/sites/update_site_usecase.dart' hide updateSiteUseCaseProvider;
 import 'package:wp_commander/presentation/providers/site/sites_state.dart';
-import 'package:wp_commander/core/providers/usecase_providers.dart';
+import 'package:wp_commander/core/providers/usecase_providers.dart' hide addSiteUseCaseProvider;
 import 'package:wp_commander/domain/entities/site_entity.dart';
 
 class SitesNotifier extends StateNotifier<SitesState> {

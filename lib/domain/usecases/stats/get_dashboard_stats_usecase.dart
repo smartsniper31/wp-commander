@@ -13,4 +13,6 @@ class GetDashboardStatsUseCase {
   Future<Either<Failure, StatsEntity>> call(SiteEntity site) async {
     return await repository.getStats(site.id);
   }
+
+  Future<dynamic> execute(String siteId) async {}
 }

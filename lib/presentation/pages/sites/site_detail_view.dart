@@ -28,7 +28,7 @@ class SiteDetailView extends ConsumerWidget {
           loading: () => const LoadingIndicator(message: 'Analyse de la santé du site...'),
           error: (err, stack) => ErrorRetryWidget(
             message: 'Impossible de charger les informations du site.',
-            onRetry: () => ref.refresh(siteHealthProvider(site.id)),
+            onRetry: () => ref.refresh(siteHealthProvider(site.id)), title: '', description: '',
           ),
         ),
         const SizedBox(height: 16),
