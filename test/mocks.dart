@@ -1,10 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
 import 'package:wp_commander/domain/usecases/sites/delete_site_usecase.dart';
 import 'package:wp_commander/domain/usecases/sites/get_sites_usecase.dart';
 import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
-import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 
 // Mocks for UseCases
 class MockGetSitesUseCase extends Mock implements GetSitesUseCase {}

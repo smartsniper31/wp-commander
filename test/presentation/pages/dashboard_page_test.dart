@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
-import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
 import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 import 'package:wp_commander/presentation/pages/dashboard/dashboard_page.dart';
@@ -32,16 +30,15 @@ void main() {
       'DashboardPage displays loading indicator when state is initial or loading',
       (WidgetTester tester) async {
     mockNotifier.state = const SitesState.loading();
-    await tester.pumpWidget(
-      createTestWidget(
-        overrides: [
-          sitesProvider.overrideWith(
-            (ref) => mockNotifier,
-          ),
-        ],
-        child: const DashboardPage(),
-      ),
+    final widget = await createTestWidget(
+      overrides: [
+        sitesProvider.overrideWith(
+          (ref) => mockNotifier,
+        ),
+      ],
+      child: const DashboardPage(),
     );
+    await tester.pumpWidget(widget);
 
     await tester.pump();
 
@@ -52,16 +49,15 @@ void main() {
       (WidgetTester tester) async {
     mockNotifier.state = SitesState.loaded(sites: tSites);
 
-    await tester.pumpWidget(
-      createTestWidget(
-        overrides: [
-          sitesProvider.overrideWith(
-            (ref) => mockNotifier,
-          ),
-        ],
-        child: const DashboardPage(),
-      ),
+    final widget = await createTestWidget(
+      overrides: [
+        sitesProvider.overrideWith(
+          (ref) => mockNotifier,
+        ),
+      ],
+      child: const DashboardPage(),
     );
+    await tester.pumpWidget(widget);
 
     await tester.pump();
 
@@ -73,16 +69,15 @@ void main() {
       (WidgetTester tester) async {
     mockNotifier.state = const SitesState.loaded(sites: []);
 
-    await tester.pumpWidget(
-      createTestWidget(
-        overrides: [
-          sitesProvider.overrideWith(
-            (ref) => mockNotifier,
-          ),
-        ],
-        child: const DashboardPage(),
-      ),
+    final widget = await createTestWidget(
+      overrides: [
+        sitesProvider.overrideWith(
+          (ref) => mockNotifier,
+        ),
+      ],
+      child: const DashboardPage(),
     );
+    await tester.pumpWidget(widget);
     await tester.pump();
 
     final l10n = AppLocalizations.of(tester.element(find.byType(DashboardPage)));
@@ -93,16 +88,15 @@ void main() {
       (WidgetTester tester) async {
     mockNotifier.state = const SitesState.error(message: 'Failed to fetch sites');
 
-    await tester.pumpWidget(
-      createTestWidget(
-        overrides: [
-          sitesProvider.overrideWith(
-            (ref) => mockNotifier,
-          ),
-        ],
-        child: const DashboardPage(),
-      ),
+    final widget = await createTestWidget(
+      overrides: [
+        sitesProvider.overrideWith(
+          (ref) => mockNotifier,
+        ),
+      ],
+      child: const DashboardPage(),
     );
+    await tester.pumpWidget(widget);
 
     await tester.pump();
 

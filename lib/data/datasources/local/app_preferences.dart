@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppPreferences {
   static SharedPreferences? _prefs;
 
-  static Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
+  static Future<void> init(SharedPreferences prefs) async {
+    _prefs = prefs;
   }
 
   // Thème et apparence

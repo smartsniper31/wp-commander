@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wp_commander/main.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
 
@@ -10,28 +9,25 @@ import '../test_helper.dart';
 void main() {
   testWidgets('Complete app flow - add site and view dashboard',
       (WidgetTester tester) async {
-    // 1. Initialize SharedPreferences for the test.
-    SharedPreferences.setMockInitialValues({});
+    // 1. Create the test app with the necessary overrides.
+    final container = await createTestApp(
+      overrides: [
+        sitesProvider.overrideWith((ref) => MockSitesNotifier()),
+      ],
+    );
 
-    // 2. Build our app in a test-safe environment.
+    // 2. Pump the MyApp widget with the created container.
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          // Override the sitesProvider to use our mock implementation
-          sitesProvider.overrideWithProvider(
-            StateNotifierProvider((ref) => MockSitesNotifier()),
-          ),
-        ],
-        child: MyApp(),
+      UncontrolledProviderScope(
+        container: container,
+        child: const MyApp(),
       ),
     );
 
     // 3. Let the app settle.
     await tester.pumpAndSettle();
 
-    // 4. Verify initial state (Dashboard).
-    // Let's use the actual string from the localization file.
-    // In a real app, you might want a more robust way to handle localization in tests.
+    // 4. Verify that the initial state is the Dashboard.
     expect(find.text('Dashboard'), findsOneWidget);
   });
 }
