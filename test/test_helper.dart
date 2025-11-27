@@ -10,9 +10,10 @@ import 'package:wp_commander/main.dart';
 
 Widget createTestWidget({
   required Widget child,
-  required List<Override> overrides,
+  List<Override> overrides = const [],
 }) {
-  // Initialize SharedPreferences for tests
+  // Initialize SharedPreferences for tests.
+  // This is crucial for providers that depend on it, like ThemeNotifier.
   SharedPreferences.setMockInitialValues({});
 
   return ProviderScope(
@@ -28,6 +29,7 @@ Widget createTestWidget({
         Locale('en'),
         Locale('fr'),
       ],
+      // Use `home` to test widgets in isolation, avoiding router complexities.
       home: child,
     ),
   );

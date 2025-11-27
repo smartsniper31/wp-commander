@@ -1,31 +1,37 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wp_commander/main.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
-import 'package:wp_commander/presentation/notifiers/sites_state.dart';
 
 import '../mocks.dart';
 import '../test_helper.dart';
 
 void main() {
-  final mockSitesProvider =
-      StateNotifierProvider<SitesNotifier, SitesState>(
-    (ref) => MockSitesNotifier(),
-  );
-
   testWidgets('Complete app flow - add site and view dashboard',
       (WidgetTester tester) async {
-    final testApp = await createTestApp(
-      overrides: [
-        sitesProvider.overrideWithProvider(mockSitesProvider),
-      ],
-    );
-    await tester.pumpWidget(testApp);
+    // 1. Initialize SharedPreferences for the test.
+    SharedPreferences.setMockInitialValues({});
 
+    // 2. Build our app in a test-safe environment.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          // Override the sitesProvider to use our mock implementation
+          sitesProvider.overrideWithProvider(
+            StateNotifierProvider((ref) => MockSitesNotifier()),
+          ),
+        ],
+        child: MyApp(),
+      ),
+    );
+
+    // 3. Let the app settle.
     await tester.pumpAndSettle();
 
-    expect(find.text('WP Commander'), findsOneWidget);
-
-    // ... The rest of the integration test will be implemented later
+    // 4. Verify initial state (Dashboard).
+    // Let's use the actual string from the localization file.
+    // In a real app, you might want a more robust way to handle localization in tests.
+    expect(find.text('Dashboard'), findsOneWidget);
   });
 }
