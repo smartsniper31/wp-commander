@@ -11,9 +11,13 @@ part 'comments_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class CommentsNotifier extends _$CommentsNotifier {
   @override
-  Future<List<CommentEntity>> build(String siteId) {
+  Future<List<CommentEntity>> build(String siteId) async {
     final params = FetchCommentsParams(siteId: siteId);
-    return ref.watch(fetchCommentsUseCaseProvider).execute(params);
+    final result = await ref.watch(fetchCommentsUseCaseProvider).execute(params);
+    return result.fold(
+      (failure) => throw failure,
+      (comments) => comments,
+    );
   }
 
   Future<void> approveComment(String siteId, int commentId) async {
