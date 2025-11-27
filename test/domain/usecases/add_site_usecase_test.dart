@@ -12,33 +12,41 @@ class MockSiteRepository extends Mock implements SiteRepository {}
 void main() {
   late AddSiteUseCase useCase;
   late MockSiteRepository mockSiteRepository;
+  late AddSiteParams tParams;
+  late SiteEntity tSiteEntity;
+  late SiteEntity tSiteToAdd;
 
   setUp(() {
     mockSiteRepository = MockSiteRepository();
     useCase = AddSiteUseCase(mockSiteRepository);
-    registerFallbackValue(SiteEntity(
-      id: '1',
-      name: 'fallback',
-      url: 'http://fallback.com',
-      apiKey: 'fb_key',
+
+    tSiteToAdd = SiteEntity(
+      id: '',
+      name: 'Test Site',
+      url: 'https://example.com',
+      apiKey: 'test_key',
       createdAt: DateTime.now(),
-    ));
+    );
+
+    tParams = AddSiteParams(
+      name: 'Test Site',
+      url: 'https://example.com',
+      apiKey: 'test_key',
+      site: tSiteToAdd,
+    );
+    
+    tSiteEntity = SiteEntity(
+      id: '1',
+      name: 'Test Site',
+      url: 'https://example.com',
+      apiKey: 'test_key',
+      createdAt: DateTime.now(),
+    );
+
+    registerFallbackValue(tSiteToAdd);
   });
 
-  // 2. Prepare test data
-  final tParams = AddSiteParams(
-    name: 'Test Site',
-    url: 'https://example.com',
-    apiKey: 'test_key',
-  );
-  
-  final tSiteEntity = SiteEntity(
-    id: '1',
-    name: 'Test Site',
-    url: 'https://example.com',
-    apiKey: 'test_key',
-    createdAt: DateTime.now(),
-  );
+  // 2. Prepare test data is now in setUp
 
   group('AddSiteUseCase', () {
     test(
