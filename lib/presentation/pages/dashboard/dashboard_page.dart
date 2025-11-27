@@ -15,7 +15,7 @@ class DashboardPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.translate('dashboard.title')),
+        title: Text(l10n.translate('navigation.dashboard')),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -39,13 +39,13 @@ class DashboardPage extends ConsumerWidget {
                         const Icon(Icons.cloud_off, size: 80),
                         const SizedBox(height: 20),
                         Text(
-                          l10n.translate('dashboard.empty.title'),
+                          l10n.translate('dashboard.emptyMessage'),
                           style: Theme.of(context).textTheme.headlineSmall,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          l10n.translate('dashboard.empty.subtitle'),
+                          l10n.translate('dashboard.emptyDetails'),
                           style: Theme.of(context).textTheme.bodyLarge,
                           textAlign: TextAlign.center,
                         ),
@@ -71,7 +71,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
               ),
         error: (message) => Center(
-          child: Text(l10n.translate('dashboard.loading_error')),
+          child: Text(l10n.translate('dashboard.loadingError')),
         ),
       ),
       floatingActionButton: FloatingActionButton(

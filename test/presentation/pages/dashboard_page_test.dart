@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wp_commander/core/localization/app_localizations.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/presentation/notifiers/sites_notifier.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
@@ -11,11 +12,9 @@ import '../../mocks.dart';
 import '../../test_helper.dart';
 
 void main() {
-  final mockSitesProvider = StateNotifierProvider<SitesNotifier, SitesState>(
-    (ref) => MockSitesNotifier(),
-  );
+  late MockSitesNotifier mockNotifier;
 
-  final List<SiteEntity> tSites = [
+  final tSites = [
     SiteEntity(
       id: '1',
       name: 'Test Site 1',
@@ -25,36 +24,44 @@ void main() {
     ),
   ];
 
+  setUp(() {
+    mockNotifier = MockSitesNotifier();
+  });
+
   testWidgets(
       'DashboardPage displays loading indicator when state is initial or loading',
       (WidgetTester tester) async {
+    mockNotifier.state = const SitesState.loading();
     await tester.pumpWidget(
       createTestWidget(
         overrides: [
-          sitesProvider.overrideWithProvider(mockSitesProvider),
+          sitesProvider.overrideWith(
+            (ref) => mockNotifier,
+          ),
         ],
         child: const DashboardPage(),
       ),
     );
+
+    await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
   testWidgets('DashboardPage displays a list of sites on loaded state',
       (WidgetTester tester) async {
+    mockNotifier.state = SitesState.loaded(sites: tSites);
+
     await tester.pumpWidget(
       createTestWidget(
         overrides: [
-          sitesProvider.overrideWithProvider(mockSitesProvider),
+          sitesProvider.overrideWith(
+            (ref) => mockNotifier,
+          ),
         ],
         child: const DashboardPage(),
       ),
     );
-
-    final notifier =
-        ProviderScope.containerOf(tester.element(find.byType(DashboardPage)))
-            .read(mockSitesProvider.notifier);
-    (notifier as MockSitesNotifier).state = SitesState.loaded(sites: tSites);
 
     await tester.pump();
 
@@ -64,44 +71,42 @@ void main() {
 
   testWidgets('DashboardPage displays empty state when there are no sites',
       (WidgetTester tester) async {
+    mockNotifier.state = const SitesState.loaded(sites: []);
+
     await tester.pumpWidget(
       createTestWidget(
         overrides: [
-          sitesProvider.overrideWithProvider(mockSitesProvider),
+          sitesProvider.overrideWith(
+            (ref) => mockNotifier,
+          ),
         ],
         child: const DashboardPage(),
       ),
     );
-
-    final notifier =
-        ProviderScope.containerOf(tester.element(find.byType(DashboardPage)))
-            .read(mockSitesProvider.notifier);
-    (notifier as MockSitesNotifier).state = const SitesState.loaded(sites: []);
-
     await tester.pump();
 
-    expect(find.text('Aucun site configuré'), findsOneWidget);
+    final l10n = AppLocalizations.of(tester.element(find.byType(DashboardPage)));
+    expect(find.text(l10n.translate('dashboard.emptyMessage')), findsOneWidget);
   });
 
   testWidgets('DashboardPage displays error message on failure',
       (WidgetTester tester) async {
+    mockNotifier.state = const SitesState.error(message: 'Failed to fetch sites');
+
     await tester.pumpWidget(
       createTestWidget(
         overrides: [
-          sitesProvider.overrideWithProvider(mockSitesProvider),
+          sitesProvider.overrideWith(
+            (ref) => mockNotifier,
+          ),
         ],
         child: const DashboardPage(),
       ),
     );
 
-    final notifier =
-        ProviderScope.containerOf(tester.element(find.byType(DashboardPage)))
-            .read(mockSitesProvider.notifier);
-    (notifier as MockSitesNotifier).state =
-        const SitesState.error(message: 'Failed to fetch sites');
-
     await tester.pump();
 
-    expect(find.text('Failed to fetch sites'), findsOneWidget);
+    final l10n = AppLocalizations.of(tester.element(find.byType(DashboardPage)));
+    expect(find.text(l10n.translate('dashboard.loadingError')), findsOneWidget);
   });
 }

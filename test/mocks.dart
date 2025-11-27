@@ -21,6 +21,6 @@ class MockSitesNotifier extends SitesNotifier {
 
   @override
   Future<void> fetchSites() async {
-    state = const SitesState.loading();
+    // Do nothing in mock
   }
 }
