@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path_provider/path_provider.dart';
 import 'package:wp_commander/core/providers/app_providers.dart';
 import 'package:wp_commander/core/providers/shared_preferences_provider.dart';

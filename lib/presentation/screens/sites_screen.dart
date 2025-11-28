@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
-import 'package:wp_commander/presentation/providers/site/site_list_provider.dart';
 import 'package:wp_commander/presentation/pages/sites/add_site_page.dart';
 import 'package:wp_commander/presentation/pages/sites/site_detail_page.dart';
 import 'package:wp_commander/presentation/widgets/common/empty_state_widget.dart';
