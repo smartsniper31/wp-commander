@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "yezhui.code-chg",
-        "rubberduck.rubberduck-vscode"
+        "rubberduck.rubberduck-vscode",
+        "github.copilot-chat"
     ]
 }
