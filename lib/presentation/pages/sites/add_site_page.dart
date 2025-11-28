@@ -94,7 +94,12 @@ class AddSitePage extends ConsumerWidget {
                             apiKey: formState.apiKey,
                             createdAt: DateTime.now(),
                           );
-                          ref.read(sitesProvider.notifier).addSite(AddSiteParams(name: site.name, url: site.url, apiKey: site.apiKey, site: site));
+                          ref.read(sitesProvider.notifier).addSite(
+                              AddSiteParams(
+                                  name: site.name,
+                                  url: site.url,
+                                  apiKey: site.apiKey,
+                                  site: site));
                         }
                       },
                 child: const Text('Ajouter le site'),
