@@ -1,7 +1,4 @@
-import 'package:either_dart/either.dart';
 
-import '../../../core/errors/exceptions.dart';
-import '../../../core/errors/failures.dart';
 import '../../repositories/health_repository.dart';
 import '../base_usecase.dart';
 
