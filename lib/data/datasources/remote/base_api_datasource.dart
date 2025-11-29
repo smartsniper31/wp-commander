@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
@@ -11,12 +11,18 @@ class BaseApiDataSource {
   final String apiKey;
   final Duration timeout;
   final _log = Logger('BaseApiDataSource');
+  final Dio _dio;
 
   BaseApiDataSource({
     required this.baseUrl,
     required this.apiKey,
     this.timeout = const Duration(seconds: 30),
-  });
+  }) : _dio = Dio() {
+    _dio.options.baseUrl = ApiEndpoints.buildEndpoint(baseUrl, '');
+    _dio.options.connectTimeout = timeout;
+    _dio.options.receiveTimeout = timeout;
+    _dio.options.headers = _headers;
+  }
 
   // Headers communs pour toutes les requêtes
   Map<String, String> get _headers {
@@ -42,32 +48,18 @@ class BaseApiDataSource {
       );
     }
 
-    final uri = Uri.parse(
-      ApiEndpoints.buildEndpoint(baseUrl, endpoint),
-    ).replace(queryParameters: queryParameters);
-
     if (kDebugMode) {
-      _log.info('🔗 API GET: $uri');
+      _log.info('🔗 API GET: $baseUrl$endpoint');
     }
 
     try {
-      final response = await http
-          .get(uri, headers: _headers)
-          .timeout(timeout, onTimeout: () {
-        throw ApiException(
-          code: 'TIMEOUT',
-          message: 'Request timeout after ${timeout.inSeconds} seconds',
-          statusCode: 408,
-        );
-      });
-
-      return _handleResponse(response);
-    } on http.ClientException catch (e) {
-      throw ApiException(
-        code: 'CLIENT_ERROR',
-        message: 'Client error: ${e.message}',
-        statusCode: 0,
+      final response = await _dio.get(
+        endpoint,
+        queryParameters: queryParameters,
       );
+      return _handleResponse(response);
+    } on DioError catch (e) {
+      throw _handleDioError(e);
     }
   }
 
@@ -84,83 +76,59 @@ class BaseApiDataSource {
       );
     }
 
-    final uri = Uri.parse(
-      ApiEndpoints.buildEndpoint(baseUrl, endpoint),
-    );
-
     if (kDebugMode) {
-      _log.info('🔗 API POST: $uri');
+      _log.info('🔗 API POST: $baseUrl$endpoint');
       _log.info('📦 Body: $body');
     }
 
     try {
-      final response = await http
-          .post(
-            uri,
-            headers: _headers,
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(timeout);
-
-      return _handleResponse(response);
-    } on http.ClientException catch (e) {
-      throw ApiException(
-        code: 'CLIENT_ERROR',
-        message: 'Client error: ${e.message}',
-        statusCode: 0,
+      final response = await _dio.post(
+        endpoint,
+        data: body,
       );
+      return _handleResponse(response);
+    } on DioError catch (e) {
+      throw _handleDioError(e);
     }
   }
 
   // Gestion uniforme des réponses
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  Map<String, dynamic> _handleResponse(Response response) {
     if (kDebugMode) {
       _log.info('📡 Response Status: ${response.statusCode}');
-      _log.info('📄 Response Body: ${response.body}');
+      _log.info('📄 Response Body: ${response.data}');
     }
 
-    switch (response.statusCode) {
-      case 200:
-      case 201:
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        return data;
-      case 400:
-        throw const ApiException(
-          code: 'BAD_REQUEST',
-          message: 'Bad request',
-          statusCode: 400,
-        );
-      case 401:
-        throw const ApiException(
-          code: 'UNAUTHORIZED',
-          message: 'Invalid API key',
-          statusCode: 401,
-        );
-      case 403:
-        throw const ApiException(
-          code: 'FORBIDDEN',
-          message: 'Access forbidden',
-          statusCode: 403,
-        );
-      case 404:
-        throw const ApiException(
-          code: 'NOT_FOUND',
-          message: 'Endpoint not found',
-          statusCode: 404,
-        );
-      case 500:
-        throw const ApiException(
-          code: 'SERVER_ERROR',
-          message: 'Internal server error',
-          statusCode: 500,
-        );
-      default:
-        throw ApiException(
-          code: 'UNKNOWN_ERROR',
-          message: 'Unknown error occurred',
-          statusCode: response.statusCode,
-        );
+    if (response.data is String) {
+      return jsonDecode(response.data);
     }
+
+    return response.data;
+  }
+
+  ApiException _handleDioError(DioError e) {
+    if (e.type == DioErrorType.connectionTimeout ||
+        e.type == DioErrorType.receiveTimeout) {
+      return ApiException(
+        code: 'TIMEOUT',
+        message: 'Request timeout after ${timeout.inSeconds} seconds',
+        statusCode: 408,
+      );
+    }
+
+    if (e.response != null) {
+      return ApiException(
+        code: e.response?.data?['code'] ?? 'UNKNOWN_ERROR',
+        message: e.response?.data?['message'] ?? 'Unknown error occurred',
+        statusCode: e.response?.statusCode ?? 0,
+      );
+    }
+
+    return ApiException(
+      code: 'CLIENT_ERROR',
+      message: 'Client error: ${e.message}',
+      statusCode: 0,
+    );
   }
 }
 

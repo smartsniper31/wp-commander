@@ -1,64 +1,41 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:dio/dio.dart';
 
 import '../../models/api/wp_health_model.dart';
 import '../../models/api/wp_stats_model.dart';
 import '../../../domain/entities/comment_entity.dart';
 
 class WPApiDataSource {
-  final String baseUrl;
-  final String apiKey;
-  final http.Client client;
+  final Dio _dio;
 
-  WPApiDataSource({
-    required this.baseUrl,
-    required this.apiKey,
-    http.Client? client,
-  }) : client = client ?? http.Client();
-
-  Uri _buildUrl(String endpoint, {Map<String, String>? queryParams}) {
-    var uri = Uri.parse('$baseUrl/wp-json/wp-commander/v1/$endpoint');
-    if (queryParams != null) {
-      return uri.replace(queryParameters: queryParams);
-    }
-    return uri;
+  WPApiDataSource({required String baseUrl, required String apiKey}) : _dio = Dio() {
+    _dio.options.baseUrl = '$baseUrl/wp-json/wp-commander/v1/';
+    _dio.options.headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $apiKey',
+    };
   }
 
-  Map<String, String> _getHeaders() => {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      };
-
   Future<WPStatsModel> getDashboardStats() async {
-    final response = await client.get(
-      _buildUrl('stats/dashboard'),
-      headers: _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return WPStatsModel.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to get dashboard stats');
+    try {
+      final response = await _dio.get('stats/dashboard');
+      return WPStatsModel.fromJson(response.data);
+    } on DioError catch (e) {
+      throw Exception('Failed to get dashboard stats: ${e.message}');
     }
   }
 
   Future<WPHealthModel> getSiteHealth() async {
-    final response = await client.get(
-      _buildUrl('health/site'),
-      headers: _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return WPHealthModel.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to get site health');
+    try {
+      final response = await _dio.get('health/site');
+      return WPHealthModel.fromJson(response.data);
+    } on DioError catch (e) {
+      throw Exception('Failed to get site health: ${e.message}');
     }
   }
 
   Future<bool> validateConnection() async {
     try {
-      final response = await client.get(
-        _buildUrl('connection/validate'),
-        headers: _getHeaders(),
-      );
+      final response = await _dio.get('connection/validate');
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -66,99 +43,85 @@ class WPApiDataSource {
   }
 
   Future<List<CommentEntity>> getComments({int page = 1, int perPage = 10}) async {
-    final response = await client.get(
-      _buildUrl('comments', queryParams: {
-        'page': page.toString(),
-        'per_page': perPage.toString(),
-      }),
-      headers: _getHeaders(),
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonList = json.decode(response.body);
+    try {
+      final response = await _dio.get('comments', queryParameters: {
+        'page': page,
+        'per_page': perPage,
+      });
+      final List<dynamic> jsonList = response.data;
       return jsonList.map((json) => CommentEntity.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to get comments');
+    } on DioError catch (e) {
+      throw Exception('Failed to get comments: ${e.message}');
     }
   }
 
   Future<CommentEntity> getComment(int commentId) async {
-    final response = await client.get(
-      _buildUrl('comments/$commentId'),
-      headers: _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return CommentEntity.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to get comment');
+    try {
+      final response = await _dio.get('comments/$commentId');
+      return CommentEntity.fromJson(response.data);
+    } on DioError catch (e) {
+      throw Exception('Failed to get comment: ${e.message}');
     }
   }
 
   Future<bool> deleteComment(int commentId) async {
-    final response = await client.delete(
-      _buildUrl('comments/$commentId'),
-      headers: _getHeaders(),
-    );
-    return response.statusCode == 200;
+    try {
+      final response = await _dio.delete('comments/$commentId');
+      return response.statusCode == 200;
+    } on DioError catch (e) {
+      throw Exception('Failed to delete comment: ${e.message}');
+    }
   }
 
   Future<CommentEntity> updateComment(CommentEntity comment) async {
-    final response = await client.put(
-      _buildUrl('comments/${comment.id}'),
-      headers: _getHeaders(),
-      body: json.encode({
-        'content': comment.content,
-        'status': comment.status,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      return CommentEntity.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to update comment');
+    try {
+      final response = await _dio.put(
+        'comments/${comment.id}',
+        data: {
+          'content': comment.content,
+          'status': comment.status,
+        },
+      );
+      return CommentEntity.fromJson(response.data);
+    } on DioError catch (e) {
+      throw Exception('Failed to update comment: ${e.message}');
     }
   }
 
   Future<bool> approveComment(int commentId) async {
-    final response = await client.post(
-      _buildUrl('comments/$commentId/approve'),
-      headers: _getHeaders(),
-    );
-    return response.statusCode == 200;
+    try {
+      final response = await _dio.post('comments/$commentId/approve');
+      return response.statusCode == 200;
+    } on DioError catch (e) {
+      throw Exception('Failed to approve comment: ${e.message}');
+    }
   }
 
   Future<List<CommentEntity>> getPendingComments() async {
-    final response = await client.get(
-      _buildUrl('comments/pending'),
-      headers: _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonList = json.decode(response.body);
+    try {
+      final response = await _dio.get('comments/pending');
+      final List<dynamic> jsonList = response.data;
       return jsonList.map((json) => CommentEntity.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to get pending comments');
+    } on DioError catch (e) {
+      throw Exception('Failed to get pending comments: ${e.message}');
     }
   }
 
   Future<int> getPendingCommentsCount() async {
-    final response = await client.get(
-      _buildUrl('comments/pending/count'),
-      headers: _getHeaders(),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['count'] ?? 0;
-    } else {
-      throw Exception('Failed to get pending comments count');
+    try {
+      final response = await _dio.get('comments/pending/count');
+      return response.data['count'] ?? 0;
+    } on DioError catch (e) {
+      throw Exception('Failed to get pending comments count: ${e.message}');
     }
   }
 
   Future<bool> spamComment(int commentId) async {
-    final response = await client.post(
-      _buildUrl('comments/$commentId/spam'),
-      headers: _getHeaders(),
-    );
-    return response.statusCode == 200;
+    try {
+      final response = await _dio.post('comments/$commentId/spam');
+      return response.statusCode == 200;
+    } on DioError catch (e) {
+      throw Exception('Failed to spam comment: ${e.message}');
+    }
   }
 }
