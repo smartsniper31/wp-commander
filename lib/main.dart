@@ -32,45 +32,61 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeNotifierProvider);
-
     return ref.watch(sharedPreferencesProvider).when(
           data: (prefs) {
             // Initialize AppPreferences with the SharedPreferences instance.
             // This needs to be done before the app runs.
             AppPreferences.init(prefs);
-
-            return MaterialApp.router(
-              title: 'WP Commander',
-              theme: lightTheme,
-              darkTheme: darkTheme,
-              themeMode: themeMode,
-              routerConfig: router,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en', ''),
-                Locale('fr', ''),
-              ],
-              localeResolutionCallback: (locale, supportedLocales) {
-                for (var supportedLocale in supportedLocales) {
-                  if (supportedLocale.languageCode == locale?.languageCode &&
-                      supportedLocale.countryCode == locale?.countryCode) {
-                    return supportedLocale;
-                  }
-                }
-                return supportedLocales.first;
-              },
-            );
+            return const WpCommanderApp();
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(
-            child: Text('Error: $err'),
+          loading: () => const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+          error: (err, stack) => MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text('Error: $err'),
+              ),
+            ),
           ),
         );
+  }
+}
+
+class WpCommanderApp extends ConsumerWidget {
+  const WpCommanderApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeNotifierProvider);
+
+    return MaterialApp.router(
+      title: 'WP Commander',
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
+      routerConfig: router,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('fr', ''),
+      ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale?.languageCode &&
+              supportedLocale.countryCode == locale?.countryCode) {
+            return supportedLocale;
+          }
+        }
+        return supportedLocales.first;
+      },
+    );
   }
 }
