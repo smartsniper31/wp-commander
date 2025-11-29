@@ -31,7 +31,7 @@ class HealthMonitorState {
     return HealthMonitorState(
       health: health ?? this.health,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error ?? this.error,
       isMonitoring: isMonitoring ?? this.isMonitoring,
       lastChecked: lastChecked ?? this.lastChecked,
     );

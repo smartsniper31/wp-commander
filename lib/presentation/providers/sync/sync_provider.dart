@@ -32,7 +32,7 @@ class SyncState {
       isSyncing: isSyncing ?? this.isSyncing,
       currentSiteId: currentSiteId ?? this.currentSiteId,
       progress: progress ?? this.progress,
-      error: error,
+      error: error ?? this.error,
       lastSync: lastSync ?? this.lastSync,
       syncQueue: syncQueue ?? this.syncQueue,
     );

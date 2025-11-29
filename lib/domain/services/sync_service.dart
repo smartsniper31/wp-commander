@@ -54,14 +54,18 @@ class SyncService {
   Future<BatchSyncResult> syncAllSites() async {
     final sites = await siteRepository.getSites();
 
-    final results = <SyncResult>[];
-    sites.fold((l) => null, (r) async {
-      for (final site in r) {
-        final result = await syncSite(site.id);
-        results.add(result);
-        await Future.delayed(const Duration(seconds: 1));
-      }
-    });
+    final results = await sites.fold<Future<List<SyncResult>>>(
+      (failure) async => [], // En cas d'échec pour obtenir les sites, retourner une liste vide.
+      (siteList) async {
+        final syncFutures = siteList.map((site) async {
+          final result = await syncSite(site.id);
+          // Petite pause pour ne pas surcharger les serveurs
+          await Future.delayed(const Duration(milliseconds: 500));
+          return result;
+        }).toList();
+        return Future.wait(syncFutures);
+      },
+    );
 
     final successful = results.where((r) => r.success).length;
     final failed = results.length - successful;

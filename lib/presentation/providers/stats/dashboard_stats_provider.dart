@@ -26,7 +26,7 @@ class DashboardStatsState {
     return DashboardStatsState(
       stats: stats ?? this.stats,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error ?? this.error,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }

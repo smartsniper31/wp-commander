@@ -36,10 +36,13 @@ class UseCaseResult<Result> {
     required Function(Result data) onSuccess,
     required Function(UseCaseException error) onError,
   }) {
-    if (isSuccess && data != null) {
+    if (isSuccess) {
+      // Si c'est un succès, on s'attend à ce que data ne soit pas null.
+      // Le cast est nécessaire car data est nullable dans la classe.
       onSuccess(data as Result);
-    } else if (error != null) {
-      onError(error!);
+    } else {
+      // Si ce n'est pas un succès, on s'attend à ce que error ne soit pas null.
+      onError(error as UseCaseException);
     }
   }
 }

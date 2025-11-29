@@ -34,7 +34,7 @@ class CommentsListState {
     return CommentsListState(
       comments: comments ?? this.comments,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error ?? this.error,
       filterStatus: filterStatus ?? this.filterStatus,
       hasMore: hasMore ?? this.hasMore,
       currentPage: currentPage ?? this.currentPage,
