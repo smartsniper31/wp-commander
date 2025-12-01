@@ -137,6 +137,14 @@ class AddSitePage extends ConsumerWidget {
           onChanged: notifier.updateApiKey,
           showStrength: true,
         ),
+        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.0),
+          child: Text(
+            'Vous pouvez obtenir cette clé en installant le plugin gratuit \'WP-Commander\' depuis l\'administration de votre site WordPress.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ),
       ],
     );
   }
