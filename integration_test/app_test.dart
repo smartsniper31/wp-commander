@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wp_commander/main.dart' as app;
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wp_commander/main.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -10,7 +10,7 @@ void main() {
   group('App Integration Tests', () {
     testWidgets('Complete app flow - add site and view dashboard', (WidgetTester tester) async {
       // Lancement de l'app
-      await tester.pumpWidget(const ProviderScope(child: app.MyApp()));
+      await tester.pumpWidget(const ProviderScope(child: WpCommanderApp()));
       await tester.pumpAndSettle();
 
       // Vérifier l'écran d'accueil

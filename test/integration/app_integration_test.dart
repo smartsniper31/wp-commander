@@ -16,11 +16,11 @@ void main() {
       ],
     );
 
-    // 2. Pump the MyApp widget with the created container.
+    // 2. Pump the WpCommanderApp widget with the created container.
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MyApp(),
+        child: const WpCommanderApp(),
       ),
     );
 

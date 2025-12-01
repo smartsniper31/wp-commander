@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wp_commander/core/providers/app_providers.dart';
-import 'package:wp_commander/core/providers/shared_preferences_provider.dart';
 import 'package:wp_commander/core/routing/router.dart';
 import 'package:wp_commander/core/theme/theme.dart';
 import 'package:wp_commander/data/datasources/local/app_preferences.dart';
@@ -20,39 +20,15 @@ void main() async {
   await Hive.initFlutter(appDocumentDir.path);
   Hive.registerAdapter(CachedDataModelAdapter());
 
+  // Initialize SharedPreferences and AppPreferences
+  final prefs = await SharedPreferences.getInstance();
+  AppPreferences.init(prefs);
+
   runApp(
     const ProviderScope(
-      child: MyApp(),
+      child: WpCommanderApp(),
     ),
   );
-}
-
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(sharedPreferencesProvider).when(
-          data: (prefs) {
-            // Initialize AppPreferences with the SharedPreferences instance.
-            // This needs to be done before the app runs.
-            AppPreferences.init(prefs);
-            return const WpCommanderApp();
-          },
-          loading: () => const MaterialApp(
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          ),
-          error: (err, stack) => MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: Text('Error: $err'),
-              ),
-            ),
-          ),
-        );
-  }
 }
 
 class WpCommanderApp extends ConsumerWidget {
@@ -89,4 +65,8 @@ class WpCommanderApp extends ConsumerWidget {
       },
     );
   }
+}
+
+class MyApp {
+  const MyApp();
 }

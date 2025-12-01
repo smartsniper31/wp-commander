@@ -7,6 +7,15 @@
                 "firebase-tools@latest",
                 "experimental:mcp"
             ]
+        },
+        "wp-commander": {
+            "command": "php",
+            "args": [
+                "-S",
+                "localhost:8000",
+                "-t",
+                "wp_plugin/wp-commander"
+            ]
         }
     }
 }
