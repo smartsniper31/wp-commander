@@ -16,7 +16,9 @@ class SitesNotifier extends StateNotifier<SitesState> {
   })  : _getSitesUseCase = getSitesUseCase,
         _addSiteUseCase = addSiteUseCase,
         _deleteSiteUseCase = deleteSiteUseCase,
-        super(const SitesState.initial());
+        super(const SitesState.initial()) {
+    fetchSites();
+  }
 
   Future<void> fetchSites() async {
     state = const SitesState.loading();
