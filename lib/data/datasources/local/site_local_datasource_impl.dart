@@ -1,33 +1,32 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../core/errors/exceptions.dart';
 import '../../models/site_model.dart';
 import 'site_local_datasource.dart';
 
 const cachedSitesList = 'CACHED_SITES_LIST';
 
 class SiteLocalDataSourceImpl implements SiteLocalDataSource {
-  // SharedPreferences n'est plus requis dans le constructeur
-  SiteLocalDataSourceImpl();
+  final SharedPreferences sharedPreferences;
+
+  SiteLocalDataSourceImpl({required this.sharedPreferences});
 
   @override
-  Future<List<SiteModel>> getSites() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final jsonString = sharedPreferences.getString(cachedSitesList);
-    if (jsonString != null) {
-      final List<dynamic> jsonList = json.decode(jsonString);
-      final sites = jsonList.map((json) => SiteModel.fromJson(json)).toList();
-      return Future.value(sites);
+  Future<List<SiteModel>> getSites() {
+    final jsonStringList = sharedPreferences.getStringList(cachedSitesList);
+    if (jsonStringList != null) {
+      final sites = Future.value(jsonStringList
+          .map((jsonString) => SiteModel.fromJson(json.decode(jsonString)))
+          .toList());
+      return sites;
     } else {
       return Future.value([]);
     }
   }
 
   @override
-  Future<void> cacheSites(List<SiteModel> sites) async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final jsonList = sites.map((site) => site.toJson()).toList();
-    await sharedPreferences.setString(cachedSitesList, json.encode(jsonList));
+  Future<void> cacheSites(List<SiteModel> sites) {
+    final siteJsonList = sites.map((site) => json.encode(site.toJson())).toList();
+    return sharedPreferences.setStringList(cachedSitesList, siteJsonList);
   }
 
   @override
@@ -62,8 +61,6 @@ class SiteLocalDataSourceImpl implements SiteLocalDataSource {
     if (index != -1) {
       sites[index] = site;
       await cacheSites(sites);
-    } else {
-      throw CacheException();
     }
   }
 }

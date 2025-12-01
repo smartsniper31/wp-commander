@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-// ignore: depend_on_referenced_packages
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wp_commander/core/providers/app_providers.dart';
@@ -12,21 +11,26 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
 import 'package:wp_commander/data/models/local/cached_data_model.dart';
 
-void main() async {
+Future<void> main() async {
+  // Assure que les widgets sont initialisés avant toute autre chose
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive
+  // Initialise Hive
   final appDocumentDir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter(appDocumentDir.path);
   Hive.registerAdapter(CachedDataModelAdapter());
 
-  // Initialize SharedPreferences and AppPreferences
+  // Charge les SharedPreferences et initialise les préférences de l'application
   final prefs = await SharedPreferences.getInstance();
   AppPreferences.init(prefs);
 
   runApp(
-    const ProviderScope(
-      child: WpCommanderApp(),
+    ProviderScope(
+      overrides: [
+        // Injecte l'instance de SharedPreferences dans le provider
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const WpCommanderApp(),
     ),
   );
 }
@@ -65,8 +69,4 @@ class WpCommanderApp extends ConsumerWidget {
       },
     );
   }
-}
-
-class MyApp {
-  const MyApp();
 }

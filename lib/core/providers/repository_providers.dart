@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:wp_commander/data/datasources/comments_remote_datasource.dart';
-import 'package:wp_commander/data/datasources/local/site_local_datasource_impl.dart';
+import 'package:wp_commander/data/datasources/datasource_providers.dart';
 import 'package:wp_commander/data/datasources/site_remote_datasource.dart';
 
 import '../../data/repositories/comments_repository_impl.dart';
@@ -15,7 +15,7 @@ import '../../domain/repositories/stats_repository.dart';
 
 final siteRepositoryProvider = Provider<SiteRepository>((ref) {
   return SiteRepositoryImpl(
-    localDataSource: SiteLocalDataSourceImpl(),
+    localDataSource: ref.watch(siteLocalDataSourceProvider),
     remoteDataSource: SiteRemoteDataSourceImpl(client: http.Client()),
   );
 });
@@ -23,7 +23,7 @@ final siteRepositoryProvider = Provider<SiteRepository>((ref) {
 final commentsRepositoryProvider = Provider<CommentsRepository>((ref) {
   return CommentsRepositoryImpl(
     remoteDataSource: CommentsRemoteDataSourceImpl(),
-    siteLocalDataSource: SiteLocalDataSourceImpl(),
+    siteLocalDataSource: ref.watch(siteLocalDataSourceProvider),
   );
 });
 

@@ -45,6 +45,7 @@ dependencies:
   flutter_local_notifications: ^19.5.0
   either_dart: ^1.0.0
   http: ^1.6.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
