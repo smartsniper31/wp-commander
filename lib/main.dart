@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wp_commander/core/providers/app_providers.dart';
-import 'package:wp_commander/core/routing/router.dart';
+import 'package:wp_commander/core/routers/app_router.dart'; // MODIFIÉ
 import 'package:wp_commander/core/theme/theme.dart';
 import 'package:wp_commander/data/datasources/local/app_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -41,13 +41,14 @@ class WpCommanderApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeNotifierProvider);
+    final router = ref.watch(goRouterProvider); // MODIFIÉ
 
     return MaterialApp.router(
       title: 'WP Commander',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: themeMode,
-      routerConfig: router,
+      routerConfig: router, // MODIFIÉ
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

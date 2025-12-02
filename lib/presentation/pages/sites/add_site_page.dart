@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart'; // AJOUTÉ
 import 'package:wp_commander/domain/entities/site_entity.dart';
 import 'package:wp_commander/domain/usecases/sites/add_site_usecase.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
@@ -38,7 +39,7 @@ class AddSitePage extends ConsumerWidget {
                 const SnackBar(content: Text('Site ajouté avec succès!')),
               );
               formNotifier.reset();
-              Navigator.of(context).pop();
+              context.pop(); // MODIFIÉ
             },
             error: (message) {
               if (!context.mounted) return;

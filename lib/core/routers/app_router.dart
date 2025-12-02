@@ -6,6 +6,7 @@ import '../../presentation/pages/dashboard/dashboard_page.dart';
 import '../../presentation/pages/sites/add_site_page.dart';
 import '../../presentation/pages/sites/site_detail_page.dart';
 import '../../presentation/pages/error/error_404_page.dart';
+import '../../presentation/pages/settings/settings_page.dart'; // AJOUTÉ
 import 'routes.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -44,6 +45,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+
+      // Route des paramètres
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const SettingsPage(),
+        ),
+      ), // AJOUTÉ
     ],
 
     // Gestion des erreurs 404

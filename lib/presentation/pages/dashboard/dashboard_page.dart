@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wp_commander/core/localization/app_localizations.dart';
+import 'package:wp_commander/core/routers/routes.dart';
 import 'package:wp_commander/presentation/notifiers/sites_provider.dart';
 import 'package:wp_commander/presentation/widgets/animations/fade_in_animation.dart';
 
@@ -20,7 +21,7 @@ class DashboardPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              context.go('/settings');
+              context.go(AppRoutes.settings);
             },
           ),
         ],
@@ -64,7 +65,8 @@ class DashboardPage extends ConsumerWidget {
                       title: Text(site.name),
                       subtitle: Text(site.url),
                       onTap: () {
-                        context.go('/sites/${site.id}');
+                        // MODIFIÉ pour correspondre à la définition du routeur
+                        context.go('${AppRoutes.siteDetail}?id=${site.id}');
                       },
                     );
                   },
@@ -76,7 +78,7 @@ class DashboardPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.go('/add-site');
+          context.go(AppRoutes.addSite);
         },
         child: const Icon(Icons.add),
       ),

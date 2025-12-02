@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // AJOUTÉ
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -8,10 +9,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Paramètres'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        // Flèche de retour gérée automatiquement par GoRouter, plus besoin de `leading`
       ),
       body: const Center(
         child: Text('Page des paramètres'),
