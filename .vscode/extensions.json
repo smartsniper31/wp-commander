@@ -2,6 +2,7 @@
     "recommendations": [
         "yezhui.code-chg",
         "rubberduck.rubberduck-vscode",
-        "github.copilot-chat"
+        "github.copilot-chat",
+        "ikappas.phpcs"
     ]
 }
