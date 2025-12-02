@@ -3,7 +3,7 @@
  * Plugin Name: WP Commander Mobile Connector
  * Plugin URI: https://yourwebsite.com/wp-commander
  * Description: Connect your WordPress site to WP Commander Mobile App - Manage your site from mobile with real-time stats, health monitoring, and comment management.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Your Name
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -16,7 +16,7 @@
 defined('ABSPATH') || exit;
 
 // Définir les constantes du plugin
-define('WP_COMMANDER_VERSION', '1.0.0');
+define('WP_COMMANDER_VERSION', '1.0.1');
 define('WP_COMMANDER_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_COMMANDER_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('WP_COMMANDER_PLUGIN_FILE', __FILE__);
@@ -111,6 +111,7 @@ final class WPCommander {
             array($this, 'admin_page')
         );
 
+        /* MODIFIÉ : Le code suivant contenait un bug et a été désactivé
         // Page avancée
         add_submenu_page(
             'wp-commander', // Slug de la page parente
@@ -120,6 +121,7 @@ final class WPCommander {
             'wp-commander-advanced',
             array($this, 'advanced_admin_page')
         );
+        */
     }
 
     public function advanced_admin_page() {
