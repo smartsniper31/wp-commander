@@ -21,10 +21,10 @@ define('WP_COMMANDER_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_COMMANDER_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('WP_COMMANDER_PLUGIN_FILE', __FILE__);
 
-// Après les constantes, ajouter l'include de sécurité
+// MODIFIÉ : Charger les utilitaires en premier
+require_once WP_COMMANDER_PLUGIN_PATH . 'includes/utils/class-logger.php';
 require_once WP_COMMANDER_PLUGIN_PATH . 'includes/security/class-api-authentication.php';
 require_once WP_COMMANDER_PLUGIN_PATH . 'includes/api/class-actions-controller.php';
-require_once WP_COMMANDER_PLUGIN_PATH . 'includes/utils/class-logger.php';
 
 // Classe principale du plugin
 final class WPCommander {
