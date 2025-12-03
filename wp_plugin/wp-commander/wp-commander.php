@@ -3,7 +3,7 @@
  * Plugin Name: WP Commander Mobile Connector
  * Plugin URI: https://yourwebsite.com/wp-commander
  * Description: Connect your WordPress site to WP Commander Mobile App - Manage your site from mobile with real-time stats, health monitoring, and comment management.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Your Name
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,11 +15,8 @@
 // Sécurité : empêcher l'accès direct
 defined('ABSPATH') || exit;
 
-// **CORRECTIF : Inclusion de la classe de base des contrôleurs**
-// Ce fichier est requis par tous les autres contrôleurs.
+// Inclusion des fichiers
 require_once plugin_dir_path(__FILE__) . 'includes/api/class-base-controller.php';
-
-// Inclusion des autres fichiers
 require_once plugin_dir_path(__FILE__) . 'includes/utils/class-logger.php';
 require_once plugin_dir_path(__FILE__) . 'includes/security/class-api-authentication.php';
 require_once plugin_dir_path(__FILE__) . 'includes/api/class-actions-controller.php';
@@ -45,7 +42,7 @@ final class WPCommander {
     
     private function init_hooks() {
         add_action('admin_notices', function() {
-            echo '<div class="notice notice-success"><p><strong>WP Commander (v1.0.5):</strong> Plugin actif et corrigé.</p></div>';
+            echo '<div class="notice notice-success"><p><strong>WP Commander (v1.0.6):</strong> Ready to connect.</p></div>';
         });
 
         register_activation_hook(__FILE__, array($this, 'activate'));
@@ -53,7 +50,15 @@ final class WPCommander {
         add_action('rest_api_init', array($this, 'register_rest_routes'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
 
+        // **CORRECTIF : Autoriser l'en-tête API personnalisé pour les requêtes CORS**
+        add_filter('rest_allowed_cors_headers', array($this, 'add_custom_header_to_cors'));
+
         new WP_Commander_API_Authentication();
+    }
+
+    public function add_custom_header_to_cors($allowed_headers) {
+        $allowed_headers[] = 'X-WPC-API-KEY';
+        return $allowed_headers;
     }
     
     public function activate() {
