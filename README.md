@@ -50,6 +50,35 @@
 
 Detailed installation instructions available in [documentation/INSTALLATION.md](documentation/INSTALLATION.md)
 
+---
+
+## 📋 Project Management
+
+### Governance & Planning
+This project follows a professional 6-week execution plan with clear governance:
+
+- **[EXECUTION_PLAN.md](./EXECUTION_PLAN.md)** - Strategic master document (budget, timeline, ROI)
+- **[ROADMAP.md](./ROADMAP.md)** - 29 tasks across 4 phases with deadlines
+- **[QUICK_START.md](./QUICK_START.md)** - Team onboarding by role
+- **[INDEX.md](./INDEX.md)** - Complete documentation navigation
+
+### Current Status
+- **Project Score**: 4.2/10 (Pre-Alpha) → 7.5-8/10 (Target)
+- **Phase**: Phase 0 - Blockers Critiques (Weeks 1-2)
+- **Timeline**: Sept 3 - Oct 21, 2026 (6 weeks to launch)
+- **Target**: CodeCanyon + WordPress.org publication
+
+### For New Team Members
+👉 **Start here**: [QUICK_START.md](./QUICK_START.md) - 5-minute onboarding
+
+### For Leadership/PM
+👉 **Start here**: [EXECUTION_PLAN.md](./EXECUTION_PLAN.md) - Strategic overview
+
+### For Developers
+👉 **Start here**: [ROADMAP.md](./ROADMAP.md) - Technical tasks & phases
+
+---
+
 ## 🤝 Support
 
 - 📧 Email: support@wpcommander.com
